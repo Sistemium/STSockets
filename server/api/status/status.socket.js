@@ -12,6 +12,6 @@ exports.register = function(socket) {
   });
 };
 
-exports.registerSocketRefresh = function (body) {
+exports.socketRefresh = function (body) {
   eventEmitter.emit('socket:refresh', body);
 };
