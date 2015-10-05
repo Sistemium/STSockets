@@ -8,7 +8,7 @@ var eventEmitter = new events.EventEmitter();
 
 exports.register = function(socket) {
   eventEmitter.on('socket:refresh', function (data) {
-    socket.emit('event', data);
+    socket.emit('status:refresh', data);
   });
 };
 

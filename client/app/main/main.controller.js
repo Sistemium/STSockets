@@ -3,9 +3,11 @@
 angular.module('stsocketsApp')
   .controller('MainCtrl', function ($scope, $http, socket) {
     $scope.awesomeThings = [];
+    $scope.items = [];
 
     $http.get('/api/things').success(function(awesomeThings) {
       $scope.awesomeThings = awesomeThings;
+      socket.syncUpdates('status', $scope.items);
       socket.syncUpdates('thing', $scope.awesomeThings);
     });
 

@@ -59,6 +59,13 @@ angular.module('stsocketsApp')
           _.remove(array, {_id: item._id});
           cb(event, item, array);
         });
+
+        /**
+         * Syncs updated data
+         */
+        socket.on(modelName + ':refresh', function (items) {
+          array = items;
+        })
       },
 
       /**
