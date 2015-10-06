@@ -9,7 +9,7 @@ var StatusSchema = new Schema({
     hashKey: true
   },
   url: String,
-  time: Date
+  date: Date
 });
 
 module.exports = dynamoose.model('Status', StatusSchema);
