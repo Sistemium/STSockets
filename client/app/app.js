@@ -13,4 +13,10 @@ angular.module('stsocketsApp', [
       .otherwise('/');
 
     $locationProvider.html5Mode(true);
-  });
+  })
+  .run(['$rootScope', 'socket', function ($rootScope, socket) {
+    $rootScope.$on('$stateChangeStart',  function (event, next, nextParams) {
+      var status = {};
+      socket.socket.emit('status:change', status);
+    })
+  }]);

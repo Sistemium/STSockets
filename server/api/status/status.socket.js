@@ -1,17 +1,15 @@
 /**
- * Broadcast updates to client when the model changes
+ * Write to dynamodb on status change
  */
 
+
 'use strict';
-var events = require('events');
-var eventEmitter = new events.EventEmitter();
+var Status = require('./status.model');
 
 exports.register = function(socket) {
-  eventEmitter.on('socket:refresh', function (data) {
-    socket.emit('status:refresh', data);
+  socket.on('status:change', function (data) {
+    Status.create(data, function (err) {
+      if (err) console.log(err);
+    })
   });
-};
-
-exports.socketRefresh = function (body) {
-  eventEmitter.emit('socket:refresh', body);
 };
