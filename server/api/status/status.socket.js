@@ -11,7 +11,7 @@ exports.register = function(socket) {
   socket.on('status:change', function (status) {
     status.xid = uuid.v4();
     status.date = Date.now();
-    Status.create(data, function (err) {
+    Status.create(status, function (err) {
       if (err) console.log(err);
     })
   });

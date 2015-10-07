@@ -8,6 +8,8 @@ var StatusSchema = new Schema({
     type: String,
     hashKey: true
   },
+  token: String,
+  userId: String,
   url: String,
   date: Date
 });
