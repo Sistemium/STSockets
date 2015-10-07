@@ -1,17 +1,20 @@
-/**
- * Broadcast updates to client when the model changes
- */
-
 'use strict';
 var events = require('events');
 var eventEmitter = new events.EventEmitter();
 
 exports.register = function(socket) {
-  eventEmitter.on('socket:refresh', function (data) {
-    socket.emit('driver:refresh', data);
+  eventEmitter.on('drivers:refresh', function (drivers) {
+    socket.emit('drivers:refresh', drivers);
+  });
+  eventEmitter.on('driver:refresh', function (driver) {
+    socket.emit('driver:refresh', driver);
   });
 };
 
-exports.socketRefresh = function (body) {
-  eventEmitter.emit('socket:refresh', body);
+exports.driversRefresh = function (drivers) {
+  eventEmitter.emit('drivers:refresh', drivers);
+};
+
+exports.driverRefresh = function (driver) {
+  eventEmitter.emit('driver:refresh', driver);
 };
