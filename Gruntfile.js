@@ -411,7 +411,7 @@ module.exports = function (grunt) {
     concurrent: {
       server: [
         'jade',
-        'sass',
+        //'sass',
       ],
       test: [
         'jade',
