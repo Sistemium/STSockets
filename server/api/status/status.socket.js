@@ -14,5 +14,6 @@ exports.register = function(socket) {
     Status.create(status, function (err) {
       if (err) console.log(err);
     })
+    socket.emit('status-accepted',status.xid);
   });
 };

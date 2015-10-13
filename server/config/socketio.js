@@ -16,9 +16,10 @@ function onDisconnect(socket) {
 function onConnect(socket) {
   // When the client emits 'info', this listens and executes
   socket.on('info', function (data) {
+    socket.emit('info-success',(new Date()).toISOString());
     console.info('[%s] %s', socket.address, JSON.stringify(data, null, 2));
   });
-
+  socket.emit('connect-success',(new Date()).toISOString());
   // Insert sockets below
   driverSocket.register(socket);
   statusSocket.register(socket);
