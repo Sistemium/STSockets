@@ -13,7 +13,8 @@ exports.register = function(socket) {
     status.date = Date.now();
     Status.create(status, function (err) {
       if (err) console.log(err);
-    })
+    });
+    console.info('status:change xid:',status.xid, 'url:', status.url);
     socket.emit('status-accepted',status.xid);
   });
 };
