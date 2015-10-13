@@ -5,6 +5,8 @@
 'use strict';
 
 var config = require('./environment');
+var driverSocket = require('../api/driver/driver.socket');
+var statusSocket = require('../api/status/status.socket');
 
 // When the user disconnects.. perform this
 function onDisconnect(socket) {
@@ -18,8 +20,8 @@ function onConnect(socket) {
   });
 
   // Insert sockets below
-  require('../api/driver/driver.socket').register(socket);
-  require('../api/status/status.socket').register(socket);
+  driverSocket.register(socket);
+  statusSocket.register(socket);
 }
 
 module.exports = function (socketio) {
