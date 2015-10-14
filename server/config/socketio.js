@@ -7,22 +7,60 @@
 var config = require('./environment');
 var driverSocket = require('../api/driver/driver.socket');
 var statusSocket = require('../api/status/status.socket');
+var remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
 
 // When the user disconnects.. perform this
 function onDisconnect(socket) {
+
+  console.info('DISCONNECTED',
+    'id:', socket.id,
+    'address:', socket.handshake.headers['x-real-ip'] || socket.handshake.address
+  );
+
 }
 
 // When the user connects.. perform this
 function onConnect(socket) {
-  // When the client emits 'info', this listens and executes
-  socket.on('info', function (data) {
-    socket.emit('info-success',(new Date()).toISOString());
-    console.info('[%s] %s', socket.address, JSON.stringify(data, null, 2));
+
+  console.info('CONNECTED',
+    'id:', socket.id,
+    'address:', socket.handshake.headers['x-real-ip'] || socket.handshake.address
+  );
+
+  socket.on ('authorization', function (data,clientAck){
+
+    var ack = (typeof clientAck === 'function') ? clientAck : function () {};
+
+    console.info('authorization:', 'id:', socket.id, JSON.stringify(data, null, 2));
+
+    if (socket.isAuthorized = !!data.accessToken) {
+      socket.accessToken = data.accessToken;
+      socket.userId = data.userId;
+
+      if (data.deviceUUID) {
+        socket.deviceUUID = data.deviceUUID;
+        remoteCommandsSocket.register(socket);
+      }
+
+      driverSocket.register(socket);
+      statusSocket.register(socket);
+
+    } else {
+      delete socket.accessToken;
+      delete socket.userId;
+    }
+
+    ack ({
+      isAuthorized: socket.isAuthorized
+    });
+
   });
-  socket.emit('connect-success',(new Date()).toISOString());
-  // Insert sockets below
-  driverSocket.register(socket);
-  statusSocket.register(socket);
+
+  socket.on('info', function (data,ack) {
+    ack((new Date()).toISOString());
+    console.info('info:', JSON.stringify(data, null, 2));
+  });
+
 }
 
 module.exports = function (socketio) {
@@ -51,11 +89,10 @@ module.exports = function (socketio) {
     // Call onDisconnect.
     socket.on('disconnect', function () {
       onDisconnect(socket);
-      console.info('[%s] DISCONNECTED', socket.address);
     });
 
     // Call onConnect.
     onConnect(socket);
-    console.info('[%s] CONNECTED', socket.address);
+
   });
 };
