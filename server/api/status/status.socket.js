@@ -32,7 +32,7 @@ exports.register = function(socket) {
 
       Status.create(rec, function (err) {
         if (err) {
-          console.log(err);
+          console.error(err);
         }
       });
 

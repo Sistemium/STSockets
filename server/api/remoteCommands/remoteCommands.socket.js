@@ -9,7 +9,7 @@ eventEmitter.on('remoteCommands', function (params) {
   sockets.every(function(socket){
     if (socket.deviceUUID === params.deviceUUID) {
       socket.emit('remoteCommands', params.commands);
-      console.log('remoteCommands deviceUUID:', params.deviceUUID, 'commands: ', params.commands);
+      console.info('remoteCommands deviceUUID:', params.deviceUUID, 'commands:', params.commands);
     }
   });
 });
@@ -24,7 +24,7 @@ var unRegister = function(socket) {
 
 exports.register = function(socket) {
   sockets.push(socket);
-  console.log('remoteCommands register deviceUUID:', socket.deviceUUID);
+  console.info('remoteCommands register deviceUUID:', socket.deviceUUID);
   socket.on('disconnect',function(){
     unRegister(socket);
   });
