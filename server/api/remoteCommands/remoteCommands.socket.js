@@ -6,12 +6,14 @@ var _ = require('lodash');
 var sockets = [];
 
 eventEmitter.on('remoteCommands', function (params) {
-  sockets.every(function(socket){
-    if (socket.deviceUUID === params.deviceUUID) {
-      socket.emit('remoteCommands', params.commands);
-      console.info('remoteCommands deviceUUID:', params.deviceUUID, 'commands:', params.commands);
-    }
-  });
+
+  var socket = _.find(sockets,{deviceUUID: params.deviceUUID});
+
+  if (socket) {
+    socket.emit('remoteCommands', params.commands);
+    console.info('remoteCommands deviceUUID:', params.deviceUUID, 'commands:', params.commands);
+  }
+
 });
 
 var unRegister = function(socket) {
@@ -32,16 +34,12 @@ exports.register = function(socket) {
 
 exports.pushCommand = function (deviceUUID,commands) {
 
-  var device = _.find(sockets,{deviceUUID:deviceUUID});
+  var socket = _.find(sockets,{deviceUUID:deviceUUID});
 
-  if (device) {
-    eventEmitter.emit('remoteCommands', {
-      deviceUUID: deviceUUID,
-      commands: commands
-    });
-
+  if (socket) {
+    socket.emit('remoteCommands', commands);
+    console.info('remoteCommands deviceUUID:', deviceUUID, 'commands:', commands);
     return 1;
-
   }
 
   return 0;
