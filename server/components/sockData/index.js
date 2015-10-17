@@ -21,13 +21,15 @@ var unRegister = function(socket) {
   }
 };
 
-var postApi = function (data, auth, callback) {
+var postApi = function (data, auth, deviceUUID, userAgent, callback) {
 
   var options = {
     url: apiurl,
     json: data,
     headers: {
-      authorization: auth
+      authorization: auth,
+      deviceUUID: deviceUUID,
+      "user-agent": userAgent
     }
   };
 
@@ -52,7 +54,13 @@ exports.register = function(socket) {
 
     console.info('data:v1', 'id:', socket.id, 'ack:', !!ack, 'payload:', JSON.stringify(data, null, 2));
 
-    postApi (data, socket.accessToken, ack);
+    postApi (
+      data,
+      socket.accessToken,
+      socket.deviceUUID,
+      socket.userAgent,
+      clientAck
+    );
 
   });
 

@@ -28,6 +28,8 @@ function onConnect(socket) {
     'address:', socket.handshake.headers['x-real-ip'] || socket.handshake.address
   );
 
+  socket.userAgent = socket.handshake.headers['user-agent'];
+
   socket.on ('authorization', function (data,clientAck){
 
     var ack = (typeof clientAck === 'function') ? clientAck : function () {};
