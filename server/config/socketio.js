@@ -38,25 +38,33 @@ function onConnect(socket) {
 
     if (socket.isAuthorized = !!data.accessToken) {
       socket.accessToken = data.accessToken;
-      socket.userId = data.userId;
 
       if (data.deviceUUID) {
         socket.deviceUUID = data.deviceUUID;
-        remoteCommandsSocket.register(socket);
-        sockData.register(socket);
-      }
+        sockData.register(socket,function(res){
+          if (res) {
+            //driverSocket.register(socket);
+            statusSocket.register(socket);
+            remoteCommandsSocket.register(socket);
 
-      driverSocket.register(socket);
-      statusSocket.register(socket);
+          }
+          ack({
+            isAuthorized: !!res
+          });
+        });
+      } else {
+        ack({
+          isAuthorized: true
+        });
+      }
 
     } else {
       delete socket.accessToken;
       delete socket.userId;
+      ack({
+        isAuthorized: false
+      });
     }
-
-    ack ({
-      isAuthorized: socket.isAuthorized
-    });
 
   });
 
