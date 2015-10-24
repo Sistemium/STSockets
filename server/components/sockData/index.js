@@ -75,6 +75,7 @@ exports.register = function(socket,ack) {
 
       socket.org = res.account.org;
       socket.userId = res.account.code;
+      _.extend (socket, res);
 
       sockets.push(socket);
 
