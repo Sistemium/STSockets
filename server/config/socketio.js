@@ -9,6 +9,7 @@ var driverSocket = require('../api/driver/driver.socket');
 var statusSocket = require('../api/status/status.socket');
 var remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
 var sockData = require('../components/sockData');
+var session = require('../api/session/session.controller');
 
 // When the user disconnects.. perform this
 function onDisconnect(socket) {
@@ -29,6 +30,8 @@ function onConnect(socket) {
   );
 
   socket.userAgent = socket.handshake.headers['user-agent'];
+
+  session.register(socket);
 
   socket.on ('authorization', function (data,clientAck){
 
