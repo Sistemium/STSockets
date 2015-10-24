@@ -14,6 +14,7 @@ angular.module('stsocketsApp', [
 
     $locationProvider.html5Mode(true);
   })
+
   .run(['$rootScope', 'socket', function ($rootScope, socket) {
     $rootScope.$on('$stateChangeStart',  function (event, next) {
       var status = {
@@ -22,4 +23,6 @@ angular.module('stsocketsApp', [
       debugger;
       socket.socket.emit('status:change', status);
     })
-  }]);
+  }])
+
+;
