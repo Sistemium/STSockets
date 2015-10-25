@@ -34,7 +34,7 @@ var postApi = function (data, auth, org, deviceUUID, userAgent, callback) {
     }
   };
 
-  request.post(options,function(err,res,body){
+  return request.post(options,function(err,res,body){
     callback(body);
   });
 
@@ -86,6 +86,8 @@ exports.register = function(socket,ack) {
         'userId:', socket.userId
       );
 
+      socket.touch();
+
       socket.on('disconnect', function () {
         unRegister(socket);
       });
@@ -94,6 +96,8 @@ exports.register = function(socket,ack) {
 
         var ack = (typeof clientAck === 'function') ? clientAck : function () {
         };
+
+        socket.touch();
 
         console.info('data:v1', 'id:', socket.id, 'ack:', !!ack, 'payload:', JSON.stringify(data, null, 2));
 
@@ -104,7 +108,7 @@ exports.register = function(socket,ack) {
           socket.deviceUUID,
           socket.userAgent,
           clientAck
-        );
+        ).on('response',socket.touch);
 
       });
 

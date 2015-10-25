@@ -12,6 +12,7 @@ exports.register = function(socket) {
   socket.on('status:change', function (status, clientAck) {
 
     socket.lastStatus = status;
+    socket.touch();
 
     var xid = uuid.v4();
     var ack = (typeof clientAck === 'function') ? clientAck : function () {};
