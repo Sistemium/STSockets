@@ -5,7 +5,9 @@ var controller = require('./session.controller');
 
 var router = express.Router();
 
-router.get('/', controller.list);
+var auth = require ('../../components/auth');
+
+router.get('/', auth ('admin'), controller.list);
 //router.get('/:id', controller.getById);
 
 module.exports = router;
