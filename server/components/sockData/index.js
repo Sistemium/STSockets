@@ -108,7 +108,9 @@ exports.register = function(socket,ack) {
           socket.deviceUUID,
           socket.userAgent,
           clientAck
-        ).on('response',socket.touch);
+        ).on('response',function () {
+            socket.touch()
+        });
 
       });
 
