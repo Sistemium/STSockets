@@ -9,6 +9,14 @@ var statusSocket = require('../../api/status/status.socket');
 var sockets = [];
 
 var socketData = function (socket) {
+  var di = socket.deviceInfo && {
+    deviceUUID: socket.deviceInfo.deviceUUID,
+      deviceName: socket.deviceInfo.deviceName,
+      devicePlatform: socket.deviceInfo.devicePlatform,
+      bundleVersion: socket.deviceInfo.bundleVersion,
+      systemVersion: socket.deviceInfo.systemVersion,
+      buildType: socket.deviceInfo.buildType
+  };
   return {
     id: socket.id,
     userAgent: socket.userAgent,
@@ -16,7 +24,8 @@ var socketData = function (socket) {
     accessToken: socket.accessToken,
     account: socket.account,
     lastStatus: socket.lastStatus,
-    ts: socket.ts
+    ts: socket.ts,
+    deviceInfo: di
   };
 };
 
@@ -35,6 +44,8 @@ var touchFn = function () {
 };
 
 ee.on('session:state',function(changedSocket){
+
+
   _.each(sockets,function(socket){
     if (socket.subscriber['session:state']) {
       if (changedSocket.destroyed) {

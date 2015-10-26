@@ -43,13 +43,15 @@ function onConnect(socket) {
       socket.accessToken = data.accessToken;
 
       if (data.deviceUUID) {
+
         socket.deviceUUID = data.deviceUUID;
+        socket.deviceInfo = data;
+
         sockData.register(socket,function(res){
           if (res) {
             //driverSocket.register(socket);
             statusSocket.register(socket);
             remoteCommandsSocket.register(socket);
-
           }
           ack({
             isAuthorized: !!res
