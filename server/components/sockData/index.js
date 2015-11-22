@@ -53,16 +53,25 @@ var authByToken = function (token,deviceUUID,userAgent,callback) {
   };
 
   request.get(options,function(err,res,body){
-    callback(err ? false : JSON.parse(body));
+
+    var jsonBody;
+
+    try {
+      jsonBody = JSON.parse(body);
+    } catch (x) {
+      jsonBody = false;
+    }
+
+    callback(err ? false : jsonBody, res.statusCode);
   });
 
 };
 
 exports.register = function(socket,ack) {
 
-  authByToken(socket.accessToken,socket.deviceUUID,socket.userAgent,function(res){
+  authByToken(socket.accessToken,socket.deviceUUID,socket.userAgent,function(res,status){
 
-    if (!(res && res.account)) {
+    if (status==401) {
 
       console.info(
         'sockData register id', socket.id,
@@ -71,6 +80,9 @@ exports.register = function(socket,ack) {
 
       ack(false);
 
+    } else if (!(res && res.account)) {
+      console.info('sockData register id', socket.id, 'error: ', status);
+      //socket.disconnect();
     } else {
 
       socket.org = res.account.org;
