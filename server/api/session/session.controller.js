@@ -45,7 +45,6 @@ var touchFn = function () {
 
 ee.on('session:state',function(changedSocket){
 
-
   _.each(sockets,function(socket){
     if (socket.subscriber['session:state']) {
       if (changedSocket.destroyed) {
@@ -57,6 +56,7 @@ ee.on('session:state',function(changedSocket){
       }
     }
   });
+
 });
 
 
@@ -103,6 +103,8 @@ exports.register = function(socket) {
       isAuthorized: true
     });
   });
+
+  socket.touch();
 
 };
 
