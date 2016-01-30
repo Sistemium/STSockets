@@ -10,6 +10,7 @@ var log401 = function (url,token) {
   console.error ('Not authorized token:', token, 'url:', url);
 };
 
+var debug = require ('debug') ('sts:auth');
 
 var getRoles = function (token, callback) {
 
@@ -59,13 +60,20 @@ module.exports = function (needRolesStringOrArray) {
 
     var token = req.headers.authorization;
 
-    var onAuthorized = function (roles) {
+    var onAuthorized = function (token) {
+
+      if (!token.roles) {
+        debug ('onAuthorized', 'no roles', token);
+        return res.status (401).end ('No auth data');
+      }
+
       var hasRole = !needRoles || _.reduce (needRoles,function(accumulator, role) {
-        return accumulator || !!roles[role];
+        return accumulator || !!token.roles[role];
       },false);
 
       if (hasRole) {
-        next()
+        req.auth = token;
+        next();
       } else {
         res.status(401).end('Need roles: ' + JSON.stringify(needRoles, null, 2));
       }
@@ -75,7 +83,7 @@ module.exports = function (needRolesStringOrArray) {
 
       if (auth) {
         tokens[token] = auth;
-        return onAuthorized (auth.roles);
+        return onAuthorized (auth);
       }
 
       if (auth === false) {
@@ -96,7 +104,7 @@ module.exports = function (needRolesStringOrArray) {
       return getRoles (token,onRoles);
     }
 
-    onAuthorized (tokens[token].roles);
+    onAuthorized (tokens[token]);
 
   };
 

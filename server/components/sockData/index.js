@@ -13,6 +13,9 @@ var request = require('request');
 
 var Q = require ('q');
 
+var apiv3 = require('./st-api-v3');
+var debug = require ('debug') ('sts:sockData');
+
 eventEmitter.on('api:data', function (data) {
   sockets.every(function(socket){
     console.info('api:data:', data);
@@ -224,6 +227,23 @@ var register = function (socket) {
     console.info('livesearch', 'id:', socket.id, 'query:', JSON.stringify(data, null, 2));
 
     liveSearchBy (data,socket,ack);
+
+  });
+
+  socket.on('get:v3', function (request, clientAck) {
+
+    var ack = (typeof clientAck === 'function') ? clientAck : function (res) {
+      console.log ('empty callback:', res);
+    };
+
+    socket.touch();
+
+    console.info('data:v3', 'id:', socket.id, 'query:', JSON.stringify(request, null, 2));
+
+    apiv3.get(request,socket)
+      .then (function (res) {
+        ack (res);
+      });
 
   });
 
