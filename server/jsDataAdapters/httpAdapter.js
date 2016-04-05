@@ -26,7 +26,7 @@ function makeRequest(options, resolve, reject) {
     }
 
     if (response.statusCode === 401) {
-      return resolve(401);
+      return reject(401);
     }
 
     let result;

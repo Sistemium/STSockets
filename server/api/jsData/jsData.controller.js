@@ -43,12 +43,11 @@ exports.index = function (req, res, next) {
     headers:  _.pick(req.headers, config.headers),
     qs: req.query
   }).then((reply) => {
-
-    if (reply === 401) {
-      return res.status(401).end();
-    }
     return res.json(reply);
   }).catch(err => {
+    if (err === 401) {
+      return res.status(401).end();
+    }
     debug(err);
     next(err);
   });
