@@ -24,7 +24,16 @@ var all = {
   // Secret for session, you will want to change this and make it an environment variable
   secrets: {
     session: 'stsockets-secret'
-  }
+  },
+
+  headers: [
+    'authorization',
+    'x-page-size',
+    'x-return-post',
+    'x-start-page'
+  ],
+
+  STAPI: requiredProcessEnv('STAPI')
 
 };
 
