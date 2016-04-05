@@ -7,6 +7,23 @@ function Defaults() {
 
 }
 
+function makeRequest(options, resolve, reject) {
+
+  request(options, function (error, response, body) {
+    if (error) {
+      console.error('Error occurred:', error);
+      return reject();
+    }
+
+    if (response.statusCode === 404) {
+      return reject(404);
+    }
+
+    return resolve(JSON.parse(body));
+  });
+
+}
+
 Defaults.prototype.queryTransform = function (resourceName, params) {
   return params;
 };
@@ -31,26 +48,29 @@ MyCustomAdapter.prototype.create = function (definition, attrs, options) {
 
 MyCustomAdapter.prototype.find = function (definition, id, options) {
   // Must return a promise that resolves with the found item
+  let self = this;
+  return new DSUtils.Promise(function (resolve, reject) {
+    let opts = {
+      url: self.defaults.url + definition.endpoint + '/' + id,
+      method: 'GET'
+    };
+
+   makeRequest(opts, resolve, reject);
+  });
+
 };
 
 MyCustomAdapter.prototype.findAll = function (definition, params, options) {
   // Must return a promise that resolves with the found items
-  var self = this;
+  let self = this;
   return new DSUtils.Promise(function (resolve, reject) {
 
-    var options = {
+    let opts = {
       url: self.defaults.url + definition.endpoint,
       method: 'GET'
     };
 
-    request(options, function (error, response, body) {
-      if (error) {
-        console.error('Error occurred:', error);
-        return reject();
-      }
-
-      return resolve(JSON.parse(body));
-    });
+    makeRequest(opts, resolve, reject);
   });
 };
 
