@@ -49,7 +49,7 @@ exports.index = function (req, res, next) {
     }
     return res.json(reply);
   }).catch(err => {
-    console.error(err);
+    debug(err);
     next(err);
   });
 
@@ -73,7 +73,7 @@ exports.show = function (req, res, next) {
     }
     return res.json(reply);
   }).catch(err => {
-    console.error(err);
+    debug(err);
     next(err);
   });
 
