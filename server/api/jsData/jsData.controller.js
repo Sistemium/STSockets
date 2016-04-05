@@ -1,10 +1,7 @@
 'use strict';
 
 let JSData = require('js-data');
-let DSRedisAdapter = require('js-data-redis');
 let DS = new JSData.DS({
-  strategy: 'fallback',
-  fallbackAdapters: ['http', 'redis'],
   cacheResponse: false,
   bypassCache: true,
   keepChangeHistory: false,
@@ -18,9 +15,7 @@ let DSHttpAdapter = require('../../jsDataAdapters/httpAdapter');
 let httpAdapter = new DSHttpAdapter({
   url: 'http://localhost:9000/api/'
 });
-let redisAdapter = new DSRedisAdapter();
 
-DS.registerAdapter('redis', redisAdapter);
 DS.registerAdapter('http', httpAdapter, {default: true});
 
 function checkResource(req) {
@@ -33,27 +28,41 @@ function checkResource(req) {
   return resource;
 }
 
-exports.index = function (req, res) {
+exports.index = function (req, res, next) {
 
   let resource = checkResource(req);
 
-  DS.findAll(resource).then((reply) => {
+  DS.findAll(resource, {}, {
+    headers: {
+      authorization: req.headers.authorization
+    },
+    q: req.query,
+    bypassCache: false,
+    cacheResponse: true
+  }).then((reply) => {
     return res.json(reply);
   }).catch(err => {
     console.error(err);
+    next(err);
   });
 
 };
 
-exports.show = function (req, res) {
+exports.show = function (req, res, next) {
 
   let resource = checkResource(req);
   let id = req.params.id;
 
-  DS.find(resource, id).then(reply => {
+  DS.find(resource, id, {
+    headers: {
+      authorization: req.headers.authorization
+    },
+    q: req.query
+  }).then(reply => {
     return res.json(reply);
   }).catch(err => {
     console.error(err);
+    next(err);
   });
 
 };

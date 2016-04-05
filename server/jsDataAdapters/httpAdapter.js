@@ -1,7 +1,8 @@
 'use strict';
-var request = require('request');
-var deepMixIn = require('mout/object/deepMixIn');
-var DSUtils = require('js-data').DSUtils;
+let request = require('request');
+let deepMixIn = require('mout/object/deepMixIn');
+let DSUtils = require('js-data').DSUtils;
+let _ = require('lodash');
 
 function Defaults() {
 
@@ -29,6 +30,7 @@ Defaults.prototype.queryTransform = function (resourceName, params) {
 };
 
 function MyCustomAdapter(options) {
+  options || (options = {});
   this.defaults = new Defaults();
   deepMixIn(this.defaults, options);
 }
@@ -49,13 +51,15 @@ MyCustomAdapter.prototype.create = function (definition, attrs, options) {
 MyCustomAdapter.prototype.find = function (definition, id, options) {
   // Must return a promise that resolves with the found item
   let self = this;
+  options || (options = {});
+
   return new DSUtils.Promise(function (resolve, reject) {
-    let opts = {
+    let opts = _.extend({
       url: self.defaults.url + definition.endpoint + '/' + id,
       method: 'GET'
-    };
+    }, options);
 
-   makeRequest(opts, resolve, reject);
+    makeRequest(opts, resolve, reject);
   });
 
 };
@@ -63,12 +67,13 @@ MyCustomAdapter.prototype.find = function (definition, id, options) {
 MyCustomAdapter.prototype.findAll = function (definition, params, options) {
   // Must return a promise that resolves with the found items
   let self = this;
+  options || (options = {});
   return new DSUtils.Promise(function (resolve, reject) {
 
-    let opts = {
+    let opts = _.extend({
       url: self.defaults.url + definition.endpoint,
       method: 'GET'
-    };
+    }, options);
 
     makeRequest(opts, resolve, reject);
   });
