@@ -5,7 +5,7 @@ var controller = require('./jsData.controller');
 
 var router = express.Router();
 
-router.get('/', controller.index);
-router.get('/:id', controller.show);
+router.get('/:pool/:resource', controller.index);
+router.get('/:pool/:resource/:id', controller.show);
 
 module.exports = router;

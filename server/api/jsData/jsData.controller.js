@@ -19,7 +19,7 @@ let httpAdapter = new DSHttpAdapter({
 DS.registerAdapter('http', httpAdapter, {default: true});
 
 function checkResource(req) {
-  let resource = req.query.resource;
+  let resource = req.params.pool + '/' + req.params.resource;
   //define resource if not already in store
   if (Object.keys(DS.definitions).indexOf(resource) === -1) {
     DS.defineResource(resource);
@@ -36,9 +36,7 @@ exports.index = function (req, res, next) {
     headers: {
       authorization: req.headers.authorization
     },
-    q: req.query,
-    bypassCache: false,
-    cacheResponse: true
+    qs: req.query
   }).then((reply) => {
     return res.json(reply);
   }).catch(err => {
@@ -57,7 +55,9 @@ exports.show = function (req, res, next) {
     headers: {
       authorization: req.headers.authorization
     },
-    q: req.query
+    qs: req.query,
+    bypassCache: false,
+    cacheResponse: true
   }).then(reply => {
     return res.json(reply);
   }).catch(err => {
