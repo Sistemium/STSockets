@@ -16,7 +16,7 @@
     "jade": "~1.2.0",
     "js-data": "^2.9.0",
     "js-data-redis": "^2.3.0",
-    "lodash": "~2.4.1",
+    "lodash": "~3.10.0",
     "method-override": "~1.0.0",
     "morgan": "~1.0.0",
     "mout": "^1.0.0",
