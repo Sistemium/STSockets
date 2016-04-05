@@ -3,7 +3,7 @@ let request = require('request');
 let deepMixIn = require('mout/object/deepMixIn');
 let DSUtils = require('js-data').DSUtils;
 let _ = require('lodash');
-let debug = require('debug')('sockets:httpAdapter');
+let debug = require('debug')('sts:httpAdapter');
 
 function Defaults() {
 
@@ -31,7 +31,7 @@ function makeRequest(options, resolve, reject) {
 
     let result;
     try {
-      debug(body);
+      //debug(body);
       result = JSON.parse(body);
     } catch (err) {
       debug('Error occurred:', err);
@@ -84,15 +84,16 @@ MyCustomAdapter.prototype.find = function (definition, id, options) {
 
 MyCustomAdapter.prototype.findAll = function (definition, params, options) {
   // Must return a promise that resolves with the found items
-  let self = this;
-  options || (options = {});
-  return new DSUtils.Promise(function (resolve, reject) {
 
-    let opts = _.extend({
-      url: self.defaults.url + definition.endpoint,
-      method: 'GET'
-    }, options);
+  let opts = _.extend({
+    qs: params,
+    url: this.defaults.url + definition.endpoint,
+    method: 'GET'
+  }, options || {});
 
+  debug ('findAll:opts', opts);
+
+  return new Promise(function (resolve, reject) {
     makeRequest(opts, resolve, reject);
   });
 };

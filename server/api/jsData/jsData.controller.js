@@ -13,7 +13,7 @@ let DS = new JSData.DS({
   notify: false,
   log: false
 });
-let debug = require('debug')('sockets:jsData.controller');
+let debug = require('debug')('sts:jsData.controller');
 
 let DSHttpAdapter = require('../../jsDataAdapters/httpAdapter');
 let httpAdapter = new DSHttpAdapter({
@@ -23,7 +23,7 @@ let httpAdapter = new DSHttpAdapter({
 let redisAdapter = new DSRedisAdapter();
 
 DS.registerAdapter('http', httpAdapter, {default: true});
-DS.registerAdapter('redis', redisAdapter);
+//DS.registerAdapter('redis', redisAdapter);
 
 function checkResource(req) {
   let resource = req.params.pool + '/' + req.params.resource;
@@ -39,10 +39,10 @@ exports.index = function (req, res, next) {
 
   let resource = checkResource(req);
 
-  DS.findAll(resource, {}, {
-    headers:  _.pick(req.headers, config.headers),
-    qs: req.query
+  DS.findAll(resource, req.query || {}, {
+    headers:  _.pick(req.headers, config.headers)
   }).then((reply) => {
+    debug('index', 'reply:', reply.length);
     return res.json(reply);
   }).catch(err => {
     if (err === 401) {
