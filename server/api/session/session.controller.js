@@ -2,6 +2,7 @@
 var events = require('events');
 var ee = new events.EventEmitter();
 var _ = require('lodash');
+var debug = require ('debug') ('sts:session.controller');
 
 var sockData = require('../../components/sockData');
 var statusSocket = require('../../api/status/status.socket');
@@ -47,12 +48,17 @@ ee.on('session:state',function(changedSocket){
 
   _.each(sockets,function(socket){
     if (socket.subscriber['session:state']) {
-      if (changedSocket.destroyed) {
-        socket.emit('session:state:destroy',changedSocket.id);
-        console.log('session:state:', socket.id, 'destroyedSocket:', changedSocket.id);
-      } else {
-        socket.emit('session:state',socketData(changedSocket));
-        console.log('session:state:', socket.id, 'changedSocket:', changedSocket.id);
+
+      if (socket.org == changedSocket.org) {
+
+        if (changedSocket.destroyed) {
+          socket.emit('session:state:destroy', changedSocket.id);
+          debug('session:state:', socket.id, 'destroyedSocket:', changedSocket.id);
+        } else {
+          socket.emit('session:state', socketData(changedSocket));
+          debug('session:state:', socket.id, 'changedSocket:', changedSocket.id);
+        }
+
       }
     }
   });
@@ -110,7 +116,11 @@ exports.register = function(socket) {
 
 exports.list = function (req, res) {
 
-  var data = sockets.map(function (socket){
+  var selfOrg = _.get(req.auth,'account.org');
+
+  var data = _.filter(sockets,function (socket){
+    return _.get(socket,'account.org') == selfOrg;
+  }).map(function (socket){
     return socketData (socket);
   });
 
