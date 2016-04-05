@@ -3,6 +3,7 @@ let request = require('request');
 let deepMixIn = require('mout/object/deepMixIn');
 let DSUtils = require('js-data').DSUtils;
 let _ = require('lodash');
+let debug = require('debug')('sockets:httpAdapter');
 
 function Defaults() {
 
@@ -12,7 +13,7 @@ function makeRequest(options, resolve, reject) {
 
   request(options, function (error, response, body) {
     if (error) {
-      console.error('Error occurred:', error);
+      debug('Error occurred:', error);
       return reject();
     }
 
@@ -20,7 +21,24 @@ function makeRequest(options, resolve, reject) {
       return reject(404);
     }
 
-    return resolve(JSON.parse(body));
+    if (response.statusCode === 204) {
+      return resolve();
+    }
+
+    if (response.statusCode === 401) {
+      return resolve(401);
+    }
+
+    let result;
+    try {
+      debug(body);
+      result = JSON.parse(body);
+    } catch (err) {
+      debug('Error occurred:', err);
+      return reject();
+    }
+
+    return resolve(result);
   });
 
 }

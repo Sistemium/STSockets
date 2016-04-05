@@ -1,6 +1,9 @@
 'use strict';
 
 let JSData = require('js-data');
+let DSRedisAdapter = require('js-data-redis');
+let config = require('../../config/environment');
+let _ = require('lodash');
 let DS = new JSData.DS({
   cacheResponse: false,
   bypassCache: true,
@@ -10,13 +13,17 @@ let DS = new JSData.DS({
   notify: false,
   log: false
 });
+let debug = require('debug')('sockets:jsData.controller');
 
 let DSHttpAdapter = require('../../jsDataAdapters/httpAdapter');
 let httpAdapter = new DSHttpAdapter({
-  url: 'http://localhost:9000/api/'
+  url: config.STAPI
 });
 
+let redisAdapter = new DSRedisAdapter();
+
 DS.registerAdapter('http', httpAdapter, {default: true});
+DS.registerAdapter('redis', redisAdapter);
 
 function checkResource(req) {
   let resource = req.params.pool + '/' + req.params.resource;
@@ -33,11 +40,13 @@ exports.index = function (req, res, next) {
   let resource = checkResource(req);
 
   DS.findAll(resource, {}, {
-    headers: {
-      authorization: req.headers.authorization
-    },
+    headers:  _.pick(req.headers, config.headers),
     qs: req.query
   }).then((reply) => {
+
+    if (reply === 401) {
+      return res.status(401).end();
+    }
     return res.json(reply);
   }).catch(err => {
     console.error(err);
@@ -52,13 +61,16 @@ exports.show = function (req, res, next) {
   let id = req.params.id;
 
   DS.find(resource, id, {
-    headers: {
-      authorization: req.headers.authorization
-    },
+    headers: _.pick(req.headers, config.headers),
+    //findStrategy: 'fallback',
+    //findFallbackAdapters: ['redis', 'http'],
     qs: req.query,
     bypassCache: false,
     cacheResponse: true
   }).then(reply => {
+    if (reply === 401) {
+      return res.status(401).end();
+    }
     return res.json(reply);
   }).catch(err => {
     console.error(err);
