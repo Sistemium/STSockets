@@ -19,7 +19,7 @@ function handleError (response, next) {
 
 exports.index = function (req, res, next) {
 
-  findAll(req.query, req.headers, req.params)
+  findAll(req)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;
@@ -28,7 +28,7 @@ exports.index = function (req, res, next) {
 
 exports.show = function (req, res, next) {
 
-  find(req.query, req.headers, req.params)
+  find(req)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;
