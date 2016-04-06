@@ -3,22 +3,22 @@ let jsDataModel = require('./jsData.model');
 let debug = require('debug')('sockets:jsData.socket');
 let _ = require('lodash');
 
-function handleSuccess(socket) {
+function handleSuccess(callback) {
   return reply => {
-    socket.emit('eventFromServer', reply);
+    callback({ data: reply });
   }
 }
 
-function handleError(socket) {
+function handleError(callback) {
   return err => {
     debug('error occurred', err);
-    socket.emit('eventFromServer', err);
+    callback({ error: err })
   };
 }
 
 exports.register = function (socket) {
 
-  socket.on('jsData', function (data) {
+  socket.on('jsData', function (data,callback) {
 
     _.assign(data.options, {
       headers: {
@@ -32,21 +32,21 @@ exports.register = function (socket) {
       case 'findAll' :
       {
         jsDataModel.findAll(null, data.resource, data.params, data.options)
-          .then(handleSuccess(socket))
-          .catch(handleError(socket))
+          .then(handleSuccess(callback))
+          .catch(handleError(callback))
         ;
         break;
       }
       case 'find':
       {
-        jsDataModel.find(null, data)
-          .then(handleSuccess(socket))
-          .catch(handleError(socket))
+        jsDataModel.find(null, data.resource, data.id, data.options)
+          .then(handleSuccess(callback))
+          .catch(handleError(callback))
         ;
         break;
       }
       default: {
-        throw new Error(`No such method... ${data.method}`);
+        return handleError(callback)(`Unsupported method '${data.method}'`);
       }
     }
 
