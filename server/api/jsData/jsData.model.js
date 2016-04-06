@@ -4,6 +4,7 @@ let _ = require('lodash');
 let debug = require('debug')('sts:jsData.controller');
 let config = require('../../config/environment');
 let makeRequest = require('./makeRequest');
+let redis = require ('../../config/redis');
 
 function getResourceName(urlParams, resource) {
   let resourceName = urlParams && urlParams.pool + '/' + urlParams.resource;
@@ -42,14 +43,31 @@ exports.find = function (req, resource, id, options) {
   let resourceName = getResourceName(urlParams, resource);
 
   return new Promise(function (resolve, reject) {
+    let hash = config.STAPI + resourceName;
     let opts = {
-      url: config.STAPI + resourceName + '/' + id,
+      url: hash + '/' + id,
       method: 'GET',
       headers: headers
     };
+    
+    redis.hgetAsync(hash, id)
+      .then((data) => {
+        if (data) {
+          debug ('find:redis', `${hash}#${id}`);
+          resolve (data);
+        } else {
+          debug ('find:makeRequest', opts);
+          makeRequest (opts, (resolved) => {
+            redis.hsetAsync(hash,id,resolved);
+            resolve(resolved);
+          }, reject);
+        }
+      })
+      .catch((err)=>{
+        console.error ('jsData:find:redis:error', err);
+        debug ('find:makeRequest', opts);
+        makeRequest (opts, resolve, reject);
+      });
 
-    debug ('find:opts', opts);
-
-    makeRequest(opts, resolve, reject);
   });
 };
