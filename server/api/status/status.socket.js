@@ -33,11 +33,11 @@ exports.register = function(socket) {
         url: status.url
       };
 
-      Status.create(rec, function (err) {
-        if (err) {
-          console.error(err);
-        }
-      });
+      // Status.create(rec, function (err) {
+      //   if (err) {
+      //     console.error(err);
+      //   }
+      // });
 
       ack({xid: status.xid});
 
