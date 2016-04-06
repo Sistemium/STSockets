@@ -16,7 +16,7 @@ module.exports = function(app) {
   // All undefined asset or api routes should return a 404
   app.route('/*')
     .get((req, res) => {
-      res.send(404);
+      res.sendStatus(404);
     });
 
 };
