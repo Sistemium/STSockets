@@ -48,6 +48,8 @@ exports.find = function (req, resource, id, options) {
       headers: headers
     };
 
+    debug ('find:opts', opts);
+
     makeRequest(opts, resolve, reject);
   });
 };
