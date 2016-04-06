@@ -8,14 +8,14 @@ let makeRequest = require('./makeRequest');
 function getResourceName(urlParams, resource) {
   let resourceName = urlParams && urlParams.pool + '/' + urlParams.resource;
   resourceName = resourceName ? resourceName
-    : resource && resource.name;
+    : resource;
   return resourceName;
 }
 
 exports.findAll = function (req, resource, params, options) {
-  let urlParams = req.params;
-  let query = req.query || params;
-  let headers = _.pick(req.headers || options.headers, config.headers);
+  let urlParams = req && req.params;
+  let query = req && req.query || params;
+  let headers = _.pick(req && req.headers || options.headers, config.headers);
 
   let resourceName = getResourceName(urlParams, resource);
 
@@ -35,9 +35,9 @@ exports.findAll = function (req, resource, params, options) {
 };
 
 exports.find = function (req, resource, id, options) {
-  let urlParams = req.params;
-  let headers = _.pick(req.headers || options.headers, config.headers);
-  id = urlParams.id || id;
+  let urlParams = req && req.params;
+  let headers = _.pick(req && req.headers || options.headers, config.headers);
+  id = urlParams && urlParams.id || id;
 
   let resourceName = getResourceName(urlParams, resource);
 
