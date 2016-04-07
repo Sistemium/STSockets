@@ -25,7 +25,7 @@ module.exports = function makeRequest(options, resolve, reject) {
       return reject(401);
     }
 
-    if (body) {
+    if (!_.isString(body)) {
       try {
         //debug(body);
         result = JSON.parse(body);
@@ -33,6 +33,8 @@ module.exports = function makeRequest(options, resolve, reject) {
         debug('JSON.parse error:', err);
         return reject();
       }
+    } else {
+      result = body;
     }
 
     return resolve({
