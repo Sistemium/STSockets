@@ -25,8 +25,6 @@ module.exports = function makeRequest(options, resolve, reject) {
       return reject(401);
     }
 
-    console.log(body);
-
     if (body) {
       try {
         //debug(body);
