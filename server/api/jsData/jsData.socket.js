@@ -26,7 +26,7 @@ function unRegister(socket) {
   }
 }
 
-function emitEvent(method, resource) {
+function emitEvent(method, resource, sourceSocketId) {
   debug('emitEvent:', method, resource);
   return (data) => {
     _.each(registeredSockets, function (subscriber) {
@@ -34,11 +34,14 @@ function emitEvent(method, resource) {
       //if (_.includes(subscriber.entities, resource)) {
       // name of entity hardcoded for now
         let event = 'jsData:' + method;
-        debug('emitEvent:', event, 'id:', subscriber.socket.id);
-        subscriber.socket.emit(event, {
-          resource: resource,
-          data: data
-        });
+        let socket = subscriber.socket;
+        if (socket.id !== sourceSocketId) {
+          debug('emitEvent:', event, 'id:', socket.id);
+          socket.emit(event, {
+            resource: resource,
+            data: data
+          });
+        }
       //}
     });
   }
@@ -73,8 +76,10 @@ exports.register = function (socket) {
       headers: {
         authorization: socket.accessToken,
         'x-return-post': true
-      }
+      },
+      sourceSocketId: socket.id
     });
+
     debug('jsData event', data);
 
     switch (data.method) {

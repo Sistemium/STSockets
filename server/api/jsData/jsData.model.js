@@ -98,7 +98,7 @@ function createOrUpdate(method, options) {
         fromBackend.uts = Date.now();
         //debug('fromBackend', fromBackend);
         resolve(fromBackend.data);
-        sockets.emitEvent('update',options.resource)(fromBackend.data);
+        sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
       } else {
         reject({
           error: 'Invalid backend response',
@@ -143,7 +143,7 @@ exports.destroy = function (resource, id, options) {
       qs: options.qs
     };
     makeRequest(opts, () => {
-      sockets.emitEvent('destroy', resource)({
+      sockets.emitEvent('destroy', resource, options.sourceSocketId)({
         id: id
       });
       resolve();
