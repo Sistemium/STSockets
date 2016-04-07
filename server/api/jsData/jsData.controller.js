@@ -1,6 +1,5 @@
 'use strict';
-let findAll = require('./jsData.model').findAll;
-let find = require('./jsData.model').find;
+let jsDataModel = require('./jsData.model');
 
 
 function handleResponse (response) {
@@ -19,7 +18,7 @@ function handleError (response, next) {
 
 exports.index = function (req, res, next) {
 
-  findAll(req)
+  jsDataModel.findAll(req)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;
@@ -28,7 +27,34 @@ exports.index = function (req, res, next) {
 
 exports.show = function (req, res, next) {
 
-  find(req)
+  jsDataModel.find(req)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
+
+};
+
+exports.create = function (req, res, next) {
+
+  jsDataModel.create(req)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
+
+};
+
+exports.update = function (req, res, next) {
+
+  jsDataModel.update(req)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
+
+};
+
+exports.destroy = function (req, res, next) {
+
+  jsDataModel.destroy(req)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;

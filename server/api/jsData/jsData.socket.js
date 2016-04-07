@@ -62,6 +62,14 @@ exports.register = function (socket) {
         ;
         break;
       }
+      case 'destroy':
+      {
+        jsDataModel.destroy(null, data.resource, data.id, data.options)
+          .then(handleSuccess(callback))
+          .catch(handleError(callback))
+        ;
+        break;
+      }
       default:
       {
         return handleError(callback)(`Unsupported method '${data.method}'`);

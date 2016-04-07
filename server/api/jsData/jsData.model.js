@@ -92,20 +92,20 @@ exports.find = function (req, resource, id, options) {
   });
 };
 
-exports.create = function (req, resource, attrs, headers) {
-  let urlParams = req && req.params;
-  headers = _.pick(req && req.headers || headers, config.headers);
-  let resourceName = getResourceName(urlParams, resource);
 
-  debug('resourceName', resourceName);
-  console.log(resourceName);
+function createOrUpdate(method, options) {
+  let urlParams = options.req && options.req.params;
+  let headers = _.pick(options.req && options.req.headers || options.headers, config.headers);
+  let resourceName = getResourceName(urlParams, options.resource);
+
   return new Promise(function (resolve, reject) {
-    let url = config.STAPI + resourceName;
+    let url = config.STAPI + resourceName ;
+    url += options.id ? '/' + options.id : '';
     let opts = {
       url: url,
-      method: 'POST',
+      method: method,
       headers: headers,
-      json: attrs
+      json: options.attrs
     };
     makeRequest(opts, (fromBackend) => {
       if (fromBackend && fromBackend.data) {
@@ -120,22 +120,42 @@ exports.create = function (req, resource, attrs, headers) {
       }
     }, reject);
   });
+}
+
+exports.create = function (req, resource, attrs, headers) {
+
+  return createOrUpdate('POST', {
+    req: req,
+    resource: resource,
+    attrs: attrs,
+    headers: headers
+  })
 
 };
 
 exports.update = function (req, resource, id, attrs, headers) {
+
+  return createOrUpdate('PUT', {
+    req: req,
+    resource: resource,
+    id: id,
+    attrs: attrs,
+    headers: headers
+  });
+
+};
+
+exports.destroy = function (req, resource, id, options) {
   let urlParams = req && req.params;
-  headers = _.pick(req && req.headers || headers, config.headers);
+  let headers = _.pick(req && req.headers || options && options.headers, config.headers);
   let resourceName = getResourceName(urlParams, resource);
 
-  console.log(attrs);
   return new Promise(function (resolve, reject) {
     let url = config.STAPI + resourceName + '/' + id;
     let opts = {
       url: url,
-      method: 'PUT',
-      headers: headers,
-      json: attrs
+      method: 'DELETE',
+      headers: headers
     };
     makeRequest(opts, (fromBackend) => {
       if (fromBackend && fromBackend.data) {
