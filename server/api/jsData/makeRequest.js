@@ -15,7 +15,9 @@ module.exports = function makeRequest(options, resolve, reject) {
     }
 
     if (response.statusCode === 204) {
-      return resolve();
+      return resolve({
+        date: response.headers.date
+      });
     }
 
     if (response.statusCode === 401) {
