@@ -31,7 +31,11 @@ module.exports = function makeRequest(options, resolve, reject) {
       return reject();
     }
 
-    return resolve(result);
+    return resolve({
+      eTag: response.headers.etag,
+      date: response.headers.date,
+      data: result
+    });
   });
 
 };

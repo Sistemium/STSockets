@@ -30,7 +30,9 @@ exports.findAll = function (req, resource, params, options) {
 
     debug ('findAll:opts', opts);
 
-    makeRequest(opts, resolve, reject);
+    makeRequest(opts, (fromBackend) => {
+      resolve (fromBackend.data);
+    }, reject);
   });
 
 };
@@ -41,6 +43,8 @@ exports.find = function (req, resource, id, options) {
   id = urlParams && urlParams.id || id;
 
   let resourceName = getResourceName(urlParams, resource);
+  // TODO: get expire time from config by resource name
+  let expireRedisAfter = 120000;
 
   return new Promise(function (resolve, reject) {
     let hash = config.STAPI + resourceName;
@@ -49,19 +53,35 @@ exports.find = function (req, resource, id, options) {
       method: 'GET',
       headers: headers
     };
-    
+    let minUts = Date.now() - expireRedisAfter;
+
     redis.hgetAsync(hash, id)
-      .then((data) => {
-        if (data) {
-          debug ('find:redis', `${hash}#${id}`);
-          resolve (data);
+      .then((inRedis) => {
+
+        if (inRedis && inRedis.data && inRedis.uts > minUts) {
+
+          debug ('find:redis', `${hash}#${id} (${inRedis.uts})`);
+          resolve (inRedis.data);
+
         } else {
+
           debug ('find:makeRequest', opts);
-          makeRequest (opts, (resolved) => {
-            redis.hsetAsync(hash,id,resolved);
-            resolve(resolved);
+
+          makeRequest (opts, (fromBackend) => {
+            if (fromBackend && fromBackend.data) {
+              fromBackend.uts = Date.now();
+              redis.hsetAsync(hash,id,fromBackend);
+              resolve(fromBackend.data);
+            } else {
+              reject ({
+                error: 'Invalid backend response',
+                response: response
+              });
+            }
           }, reject);
+
         }
+
       })
       .catch((err)=>{
         console.error ('jsData:find:redis:error', err);
