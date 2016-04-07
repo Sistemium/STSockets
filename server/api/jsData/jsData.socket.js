@@ -1,6 +1,6 @@
 'use strict';
 let jsDataModel = require('./jsData.model');
-let debug = require('debug')('sockets:jsData.socket');
+let debug = require('debug')('sts:jsData.socket');
 let _ = require('lodash');
 
 function handleSuccess(callback) {
