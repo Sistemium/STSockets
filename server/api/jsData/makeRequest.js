@@ -41,7 +41,8 @@ module.exports = function makeRequest(options, resolve, reject) {
     return resolve({
       eTag: response.headers.etag,
       date: response.headers.date,
-      data: result
+      data: result,
+      status: response.statusCode
     });
   });
 

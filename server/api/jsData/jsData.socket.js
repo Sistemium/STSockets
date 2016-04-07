@@ -1,11 +1,13 @@
 'use strict';
 let jsDataModel = require('./jsData.model');
-let debug = require('debug')('sts:jsData.socket');
+let debug = require('debug')('sockets:jsData.socket');
 let _ = require('lodash');
+var registeredSockets = [];
 
 function handleSuccess(callback) {
   return reply => {
     callback({data: reply || []});
+    return reply;
   }
 }
 
@@ -16,7 +18,44 @@ function handleError(callback) {
   };
 }
 
+function unRegister(socket) {
+  var idx = _.findIndex(registeredSockets, {socket: socket});
+  if (idx) {
+    registeredSockets.splice(idx, 1);
+    debug('Registered sockets', registeredSockets.length);
+  }
+}
+
+function emitEvent(method, resource) {
+
+  return (reply) => {
+    _.each(registeredSockets, function (socketData) {
+      //todo check if subscribed on entity
+      //if (_.includes(socketData.entities, resource)) {
+      // name of entity hardcoded for now
+        let event = 'jsData:' + method + ':' + 'article';
+        debug('event emitted', event);
+        socketData.socket.emit(event, reply);
+      //}
+    });
+  }
+
+}
+
 exports.register = function (socket) {
+
+  socket.on('jsData:subscribe', function (entities) {
+    debug('subscribe for jsData');
+
+    registeredSockets.push({
+      socket: socket,
+      entities: entities
+    });
+  });
+
+  socket.on('disconnect', function () {
+    unRegister(socket);
+  });
 
   socket.on('jsData', function (data, callback) {
 
@@ -51,6 +90,7 @@ exports.register = function (socket) {
       {
         jsDataModel.create(data.resource, data.attrs, data.options)
           .then(handleSuccess(callback))
+          .then(emitEvent('create', data.resource))
           .catch(handleError(callback))
         ;
         break;
@@ -59,6 +99,7 @@ exports.register = function (socket) {
       {
         jsDataModel.update(data.resource, data.id, data.attrs, data.options)
           .then(handleSuccess(callback))
+          .then(emitEvent('update', data.resource))
           .catch(handleError(callback))
         ;
         break;
@@ -67,6 +108,7 @@ exports.register = function (socket) {
       {
         jsDataModel.destroy(data.resource, data.id, data.options)
           .then(handleSuccess(callback))
+          .then(emitEvent('destroy', data.resource))
           .catch(handleError(callback))
         ;
         break;

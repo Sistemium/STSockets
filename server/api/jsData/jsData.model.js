@@ -8,7 +8,6 @@ let redis = require('../../config/redis');
 
 exports.findAll = function (resource, params, options) {
   let headers = _.pick(options.headers, config.headers);
-  console.log(resource, params, options);
 
   return new Promise(function (resolve, reject) {
     let opts = {
@@ -94,7 +93,6 @@ function createOrUpdate(method, options) {
       qs: options.qs
     };
     makeRequest(opts, (fromBackend) => {
-      console.log(fromBackend);
       if (fromBackend && fromBackend.data) {
         fromBackend.uts = Date.now();
         //debug('fromBackend', fromBackend);
