@@ -4,7 +4,7 @@ let _ = require('lodash');
 let debug = require('debug')('sts:jsData.controller');
 let config = require('../../config/environment');
 let makeRequest = require('./makeRequest');
-let redis = require ('../../config/redis');
+let redis = require('../../config/redis');
 
 function getResourceName(urlParams, resource) {
   let resourceName = urlParams && urlParams.pool + '/' + urlParams.resource;
@@ -28,10 +28,10 @@ exports.findAll = function (req, resource, params, options) {
       headers: headers
     };
 
-    debug ('findAll:opts', opts);
+    debug('findAll:opts', opts);
 
     makeRequest(opts, (fromBackend) => {
-      resolve (fromBackend.data);
+      resolve(fromBackend.data);
     }, reject);
   });
 
@@ -60,20 +60,20 @@ exports.find = function (req, resource, id, options) {
 
         if (inRedis && inRedis.data && inRedis.uts > minUts) {
 
-          debug ('find:redis', `${hash}#${id} (${inRedis.uts})`);
-          resolve (inRedis.data);
+          debug('find:redis', `${hash}#${id} (${inRedis.uts})`);
+          resolve(inRedis.data);
 
         } else {
 
-          debug ('find:makeRequest', opts);
+          debug('find:makeRequest', opts);
 
-          makeRequest (opts, (fromBackend) => {
+          makeRequest(opts, (fromBackend) => {
             if (fromBackend && fromBackend.data) {
               fromBackend.uts = Date.now();
-              redis.hsetAsync(hash,id,fromBackend);
+              redis.hsetAsync(hash, id, fromBackend);
               resolve(fromBackend.data);
             } else {
-              reject ({
+              reject({
                 error: 'Invalid backend response',
                 response: response
               });
@@ -83,11 +83,71 @@ exports.find = function (req, resource, id, options) {
         }
 
       })
-      .catch((err)=>{
-        console.error ('jsData:find:redis:error', err);
-        debug ('find:makeRequest', opts);
-        makeRequest (opts, resolve, reject);
+      .catch((err)=> {
+        console.error('jsData:find:redis:error', err);
+        debug('find:makeRequest', opts);
+        makeRequest(opts, resolve, reject);
       });
 
+  });
+};
+
+exports.create = function (req, resource, attrs, headers) {
+  let urlParams = req && req.params;
+  headers = _.pick(req && req.headers || headers, config.headers);
+  let resourceName = getResourceName(urlParams, resource);
+
+  debug('resourceName', resourceName);
+  console.log(resourceName);
+  return new Promise(function (resolve, reject) {
+    let url = config.STAPI + resourceName;
+    let opts = {
+      url: url,
+      method: 'POST',
+      headers: headers,
+      json: attrs
+    };
+    makeRequest(opts, (fromBackend) => {
+      if (fromBackend && fromBackend.data) {
+        fromBackend.uts = Date.now();
+        debug('fromBackend', fromBackend);
+        resolve(fromBackend.data);
+      } else {
+        reject({
+          error: 'Invalid backend response',
+          response: response
+        });
+      }
+    }, reject);
+  });
+
+};
+
+exports.update = function (req, resource, id, attrs, headers) {
+  let urlParams = req && req.params;
+  headers = _.pick(req && req.headers || headers, config.headers);
+  let resourceName = getResourceName(urlParams, resource);
+
+  console.log(attrs);
+  return new Promise(function (resolve, reject) {
+    let url = config.STAPI + resourceName + '/' + id;
+    let opts = {
+      url: url,
+      method: 'PUT',
+      headers: headers,
+      json: attrs
+    };
+    makeRequest(opts, (fromBackend) => {
+      if (fromBackend && fromBackend.data) {
+        fromBackend.uts = Date.now();
+        debug('fromBackend', fromBackend);
+        resolve(fromBackend.data);
+      } else {
+        reject({
+          error: 'Invalid backend response',
+          response: response
+        });
+      }
+    }, reject);
   });
 };
