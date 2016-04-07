@@ -1,7 +1,7 @@
 'use strict';
 
 let _ = require('lodash');
-let debug = require('debug')('sts:jsData.controller');
+let debug = require('debug')('sts:jsData.model');
 let config = require('../../config/environment');
 let makeRequest = require('./makeRequest');
 let redis = require('../../config/redis');
@@ -21,7 +21,7 @@ exports.findAll = function (resource, params, options) {
     debug('findAll:opts', opts);
 
     makeRequest(opts, fromBackend => {
-      debug('fromBackend', fromBackend);
+      //debug('fromBackend', fromBackend);
       resolve(fromBackend.data);
     }, reject);
   });
@@ -99,7 +99,7 @@ function createOrUpdate(method, options) {
       console.log(fromBackend);
       if (fromBackend && fromBackend.data) {
         fromBackend.uts = Date.now();
-        debug('fromBackend', fromBackend);
+        //debug('fromBackend', fromBackend);
         resolve(fromBackend.data);
       } else {
         reject({
@@ -144,7 +144,7 @@ exports.destroy = function (resource, id, options) {
     makeRequest(opts, (fromBackend) => {
       if (fromBackend && fromBackend.data) {
         fromBackend.uts = Date.now();
-        debug('fromBackend', fromBackend);
+        //debug('fromBackend', fromBackend);
         resolve(fromBackend.data);
       } else {
         reject({
