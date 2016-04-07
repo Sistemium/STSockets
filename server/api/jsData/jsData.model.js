@@ -141,17 +141,6 @@ exports.destroy = function (resource, id, options) {
       method: 'DELETE',
       headers: options
     };
-    makeRequest(opts, (fromBackend) => {
-      if (fromBackend && fromBackend.data) {
-        fromBackend.uts = Date.now();
-        //debug('fromBackend', fromBackend);
-        resolve(fromBackend.data);
-      } else {
-        reject({
-          error: 'Invalid backend response',
-          response: fromBackend
-        });
-      }
-    }, reject);
+    makeRequest(opts, resolve, reject);
   });
 };
