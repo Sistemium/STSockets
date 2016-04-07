@@ -7,7 +7,7 @@ let makeRequest = require('./makeRequest');
 let redis = require('../../config/redis');
 
 exports.findAll = function (resource, params, options) {
-  let headers = _.pick(options, config.headers);
+  let headers = _.pick(options.headers, config.headers);
   console.log(resource, params, options);
 
   return new Promise(function (resolve, reject) {
@@ -29,7 +29,7 @@ exports.findAll = function (resource, params, options) {
 };
 
 exports.find = function (resource, id, options) {
-  let headers = _.pick(options, config.headers);
+  let headers = _.pick(options.headers, config.headers);
 
   // TODO: get expire time from config by resource name
   let expireRedisAfter = 120000;
@@ -82,9 +82,6 @@ exports.find = function (resource, id, options) {
 
 function createOrUpdate(method, options) {
   let headers = _.pick(options.headers, config.headers);
-  _.extend(headers, {
-    'x-return-post': true
-  });
 
   return new Promise(function (resolve, reject) {
     let url = config.STAPI + options.resource;
@@ -93,7 +90,8 @@ function createOrUpdate(method, options) {
       url: url,
       method: method,
       headers: headers,
-      json: options.attrs
+      json: options.attrs,
+      qs: options.qs
     };
     makeRequest(opts, (fromBackend) => {
       console.log(fromBackend);
@@ -116,7 +114,8 @@ exports.create = function (resource, attrs, options) {
   return createOrUpdate('POST', {
     resource: resource,
     attrs: attrs,
-    headers: options
+    options: options,
+    headers: options.headers
   })
 
 };
@@ -127,7 +126,8 @@ exports.update = function (resource, id, attrs, options) {
     resource: resource,
     id: id,
     attrs: attrs,
-    headers: options
+    options: options,
+    headers: options.headers
   });
 
 };
@@ -139,8 +139,9 @@ exports.destroy = function (resource, id, options) {
     let opts = {
       url: url,
       method: 'DELETE',
-      headers: options
+      headers: _.pick(options.headers, config.headers),
+      qs: options.qs
     };
-    makeRequest(opts, resolve, reject);
+    makeRequest(opts, () => resolve(), reject);
   });
 };

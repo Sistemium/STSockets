@@ -22,7 +22,10 @@ exports.register = function (socket) {
 
     data.options = data.options || {};
     _.assign(data.options, {
-      authorization: socket.accessToken
+      headers: {
+        authorization: socket.accessToken,
+        'x-return-post': true
+      }
     });
     debug('jsData event', data);
 
