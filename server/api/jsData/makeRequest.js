@@ -25,12 +25,15 @@ module.exports = function makeRequest(options, resolve, reject) {
     }
 
     let result;
-    try {
-      //debug(body);
-      result = JSON.parse(body);
-    } catch (err) {
-      debug('Error occurred:', err);
-      return reject();
+
+    if (result) {
+      try {
+        //debug(body);
+        result = JSON.parse(body);
+      } catch (err) {
+        debug('JSON.parse error:', err);
+        return reject();
+      }
     }
 
     return resolve({
