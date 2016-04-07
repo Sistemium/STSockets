@@ -5,6 +5,7 @@ let debug = require('debug')('sts:jsData.model');
 let config = require('../../config/environment');
 let makeRequest = require('./makeRequest');
 let redis = require('../../config/redis');
+let sockets = require('./jsData.socket');
 
 exports.findAll = function (resource, params, options) {
   let headers = _.pick(options.headers, config.headers);
@@ -97,6 +98,7 @@ function createOrUpdate(method, options) {
         fromBackend.uts = Date.now();
         //debug('fromBackend', fromBackend);
         resolve(fromBackend.data);
+        sockets.emitEvent('update',options.resource)(fromBackend.data);
       } else {
         reject({
           error: 'Invalid backend response',
@@ -140,6 +142,11 @@ exports.destroy = function (resource, id, options) {
       headers: _.pick(options.headers, config.headers),
       qs: options.qs
     };
-    makeRequest(opts, () => resolve(), reject);
+    makeRequest(opts, () => {
+      sockets.emitEvent('destroy', resource)({
+        id: id
+      });
+      resolve();
+    }, reject);
   });
 };
