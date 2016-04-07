@@ -6,48 +6,36 @@ let config = require('../../config/environment');
 let makeRequest = require('./makeRequest');
 let redis = require('../../config/redis');
 
-function getResourceName(urlParams, resource) {
-  let resourceName = urlParams && urlParams.pool + '/' + urlParams.resource;
-  resourceName = resourceName ? resourceName
-    : resource;
-  return resourceName;
-}
-
-exports.findAll = function (req, resource, params, options) {
-  let urlParams = req && req.params;
-  let query = req && req.query || params;
-  let headers = _.pick(req && req.headers || options.headers, config.headers);
-
-  let resourceName = getResourceName(urlParams, resource);
+exports.findAll = function (resource, params, options) {
+  let headers = _.pick(options, config.headers);
+  console.log(resource, params, options);
 
   return new Promise(function (resolve, reject) {
     let opts = {
-      qs: query,
-      url: config.STAPI + resourceName,
+      qs: params,
+      url: config.STAPI + resource,
       method: 'GET',
       headers: headers
     };
 
     debug('findAll:opts', opts);
 
-    makeRequest(opts, (fromBackend) => {
+    makeRequest(opts, fromBackend => {
+      debug('fromBackend', fromBackend);
       resolve(fromBackend.data);
     }, reject);
   });
 
 };
 
-exports.find = function (req, resource, id, options) {
-  let urlParams = req && req.params;
-  let headers = _.pick(req && req.headers || options.headers, config.headers);
-  id = urlParams && urlParams.id || id;
+exports.find = function (resource, id, options) {
+  let headers = _.pick(options, config.headers);
 
-  let resourceName = getResourceName(urlParams, resource);
   // TODO: get expire time from config by resource name
   let expireRedisAfter = 120000;
 
   return new Promise(function (resolve, reject) {
-    let hash = config.STAPI + resourceName;
+    let hash = config.STAPI + resource;
     let opts = {
       url: hash + '/' + id,
       method: 'GET',
@@ -75,7 +63,7 @@ exports.find = function (req, resource, id, options) {
             } else {
               reject({
                 error: 'Invalid backend response',
-                response: response
+                response: fromBackend
               });
             }
           }, reject);
@@ -92,14 +80,14 @@ exports.find = function (req, resource, id, options) {
   });
 };
 
-
 function createOrUpdate(method, options) {
-  let urlParams = options.req && options.req.params;
-  let headers = _.pick(options.req && options.req.headers || options.headers, config.headers);
-  let resourceName = getResourceName(urlParams, options.resource);
+  let headers = _.pick(options.headers, config.headers);
+  _.extend(headers, {
+    'x-return-post': true
+  });
 
   return new Promise(function (resolve, reject) {
-    let url = config.STAPI + resourceName ;
+    let url = config.STAPI + options.resource;
     url += options.id ? '/' + options.id : '';
     let opts = {
       url: url,
@@ -108,6 +96,7 @@ function createOrUpdate(method, options) {
       json: options.attrs
     };
     makeRequest(opts, (fromBackend) => {
+      console.log(fromBackend);
       if (fromBackend && fromBackend.data) {
         fromBackend.uts = Date.now();
         debug('fromBackend', fromBackend);
@@ -115,47 +104,42 @@ function createOrUpdate(method, options) {
       } else {
         reject({
           error: 'Invalid backend response',
-          response: response
+          response: fromBackend
         });
       }
     }, reject);
   });
 }
 
-exports.create = function (req, resource, attrs, headers) {
+exports.create = function (resource, attrs, options) {
 
   return createOrUpdate('POST', {
-    req: req,
     resource: resource,
     attrs: attrs,
-    headers: headers
+    headers: options
   })
 
 };
 
-exports.update = function (req, resource, id, attrs, headers) {
+exports.update = function (resource, id, attrs, options) {
 
   return createOrUpdate('PUT', {
-    req: req,
     resource: resource,
     id: id,
     attrs: attrs,
-    headers: headers
+    headers: options
   });
 
 };
 
-exports.destroy = function (req, resource, id, options) {
-  let urlParams = req && req.params;
-  let headers = _.pick(req && req.headers || options && options.headers, config.headers);
-  let resourceName = getResourceName(urlParams, resource);
+exports.destroy = function (resource, id, options) {
 
   return new Promise(function (resolve, reject) {
-    let url = config.STAPI + resourceName + '/' + id;
+    let url = config.STAPI + resource + '/' + id;
     let opts = {
       url: url,
       method: 'DELETE',
-      headers: headers
+      headers: options
     };
     makeRequest(opts, (fromBackend) => {
       if (fromBackend && fromBackend.data) {
@@ -165,7 +149,7 @@ exports.destroy = function (req, resource, id, options) {
       } else {
         reject({
           error: 'Invalid backend response',
-          response: response
+          response: fromBackend
         });
       }
     }, reject);

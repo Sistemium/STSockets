@@ -22,9 +22,7 @@ exports.register = function (socket) {
 
     data.options = data.options || {};
     _.assign(data.options, {
-      headers: {
-        authorization: socket.accessToken
-      }
+      authorization: socket.accessToken
     });
     debug('jsData event', data);
 
@@ -32,7 +30,7 @@ exports.register = function (socket) {
 
       case 'findAll' :
       {
-        jsDataModel.findAll(null, data.resource, data.params, data.options)
+        jsDataModel.findAll(data.resource, data.params, data.options)
           .then(handleSuccess(callback))
           .catch(handleError(callback))
         ;
@@ -40,7 +38,7 @@ exports.register = function (socket) {
       }
       case 'find':
       {
-        jsDataModel.find(null, data.resource, data.id, data.options)
+        jsDataModel.find(data.resource, data.id, data.options)
           .then(handleSuccess(callback))
           .catch(handleError(callback))
         ;
@@ -48,7 +46,7 @@ exports.register = function (socket) {
       }
       case 'create':
       {
-        jsDataModel.create(null, data.resource, data.attrs, data.options.headers)
+        jsDataModel.create(data.resource, data.attrs, data.options)
           .then(handleSuccess(callback))
           .catch(handleError(callback))
         ;
@@ -56,7 +54,7 @@ exports.register = function (socket) {
       }
       case 'update':
       {
-        jsDataModel.update(null, data.resource, data.id, data.attrs, data.options.headers)
+        jsDataModel.update(data.resource, data.id, data.attrs, data.options)
           .then(handleSuccess(callback))
           .catch(handleError(callback))
         ;
@@ -64,7 +62,7 @@ exports.register = function (socket) {
       }
       case 'destroy':
       {
-        jsDataModel.destroy(null, data.resource, data.id, data.options)
+        jsDataModel.destroy(data.resource, data.id, data.options)
           .then(handleSuccess(callback))
           .catch(handleError(callback))
         ;

@@ -18,7 +18,11 @@ function handleError (response, next) {
 
 exports.index = function (req, res, next) {
 
-  jsDataModel.findAll(req)
+  let resource = req.params.pool + '/' + req.params.resource;
+  let params = req.query;
+  let options = req.headers;
+
+  jsDataModel.findAll(resource, params, options)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;
@@ -27,7 +31,11 @@ exports.index = function (req, res, next) {
 
 exports.show = function (req, res, next) {
 
-  jsDataModel.find(req)
+  let resource = req.params.pool + '/' + req.params.resource;
+  let id = req.params.id;
+  let options = req.headers;
+
+  jsDataModel.find(resource, id, options)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;
@@ -36,7 +44,11 @@ exports.show = function (req, res, next) {
 
 exports.create = function (req, res, next) {
 
-  jsDataModel.create(req)
+  let resource = req.params.pool + '/' + req.params.resource;
+  let attrs = req.body || req.query;
+  let options = req.headers;
+
+  jsDataModel.create(resource, attrs, options)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;
@@ -45,7 +57,12 @@ exports.create = function (req, res, next) {
 
 exports.update = function (req, res, next) {
 
-  jsDataModel.update(req)
+  let resource = req.params.pool + '/' + req.params.resource;
+  let id = req.params.id;
+  let attrs = req.body || req.query;
+  let options = req.headers;
+
+  jsDataModel.update(resource, id, attrs, options)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;
@@ -54,7 +71,11 @@ exports.update = function (req, res, next) {
 
 exports.destroy = function (req, res, next) {
 
-  jsDataModel.destroy(req)
+  let resource = req.params.pool + '/' + req.params.resource;
+  let id = req.params.id;
+  let options = req.headers;
+
+  jsDataModel.destroy(resource, id, options)
     .then(handleResponse(res))
     .catch(handleError(res, next))
   ;

@@ -4,6 +4,7 @@ let debug = require('debug')('sts:makeRequest');
 
 module.exports = function makeRequest(options, resolve, reject) {
 
+  let result;
   request(options, function (error, response, body) {
     if (error) {
       debug('Error occurred:', error);
@@ -24,9 +25,9 @@ module.exports = function makeRequest(options, resolve, reject) {
       return reject(401);
     }
 
-    let result;
+    console.log(body);
 
-    if (result) {
+    if (body) {
       try {
         //debug(body);
         result = JSON.parse(body);
