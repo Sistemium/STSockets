@@ -1,6 +1,7 @@
 'use strict';
 let request = require('request');
 let debug = require('debug')('sts:makeRequest');
+let _ = require('lodash');
 
 module.exports = function makeRequest(options, resolve, reject) {
 
