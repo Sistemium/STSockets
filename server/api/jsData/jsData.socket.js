@@ -5,7 +5,7 @@ let _ = require('lodash');
 
 function handleSuccess(callback) {
   return reply => {
-    callback({data: reply});
+    callback({data: reply || []});
   }
 }
 
