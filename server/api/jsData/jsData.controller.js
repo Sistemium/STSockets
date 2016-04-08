@@ -12,6 +12,14 @@ function handleError (response, next) {
       return response.status(401).end();
     }
 
+    if (err === 404) {
+      return response.status(404).end();
+    }
+
+    if (err && err.response && err.response.status === 500) {
+      return response.status(500).end(err.error);
+    }
+
     next(err);
   }
 }

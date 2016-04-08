@@ -55,7 +55,7 @@ exports.find = function (resource, id, options) {
           debug('find:makeRequest', opts);
 
           makeRequest(opts, (fromBackend) => {
-            if (fromBackend && fromBackend.data) {
+            if (fromBackend && fromBackend.data && fromBackend.status !== 500) {
               fromBackend.uts = Date.now();
               redis.hsetAsync(hash, id, fromBackend);
               resolve(fromBackend.data);
