@@ -4,12 +4,11 @@
 
 'use strict';
 
-var config = require('./environment');
-var driverSocket = require('../api/driver/driver.socket');
 var statusSocket = require('../api/status/status.socket');
 var remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
 var sockData = require('../components/sockData');
 var session = require('../api/session/session.controller');
+var jsDataSocket = require('../api/jsData/jsData.socket');
 
 // When the user disconnects.. perform this
 function onDisconnect(socket) {
@@ -42,6 +41,7 @@ function onConnect(socket) {
     if (socket.isAuthorized = !!data.accessToken) {
       socket.accessToken = data.accessToken;
 
+      jsDataSocket.register(socket);
       if (data.deviceUUID) {
 
         socket.deviceUUID = data.deviceUUID;

@@ -1,79 +1,104 @@
 'use strict';
+let jsDataModel = require('./jsData.model');
 
-let JSData = require('js-data');
-let DSRedisAdapter = require('js-data-redis');
-let config = require('../../config/environment');
-let _ = require('lodash');
-let DS = new JSData.DS({
-  cacheResponse: false,
-  bypassCache: true,
-  keepChangeHistory: false,
-  resetHistoryOnInject: false,
-  upsert: false,
-  notify: false,
-  log: false
-});
-let debug = require('debug')('sts:jsData.controller');
 
-let DSHttpAdapter = require('../../jsDataAdapters/httpAdapter');
-let httpAdapter = new DSHttpAdapter({
-  url: config.STAPI
-});
+function handleResponse (response) {
+  return data => response.json(data);
+}
 
-let redisAdapter = new DSRedisAdapter();
+function handleError (response, next) {
+  return err => {
+    if (err === 401) {
+      return response.status(401).end();
+    }
 
-DS.registerAdapter('http', httpAdapter, {default: true});
-//DS.registerAdapter('redis', redisAdapter);
+    if (err === 404) {
+      return response.status(404).end();
+    }
 
-function checkResource(req) {
-  let resource = req.params.pool + '/' + req.params.resource;
-  //define resource if not already in store
-  if (Object.keys(DS.definitions).indexOf(resource) === -1) {
-    DS.defineResource(resource);
+    if (err && err.response && err.response.status === 500) {
+      return response.status(500).end(err.error);
+    }
+
+    next(err);
   }
-
-  return resource;
 }
 
 exports.index = function (req, res, next) {
 
-  let resource = checkResource(req);
+  let resource = req.params.pool + '/' + req.params.resource;
+  let params = req.query;
+  let options = {
+    headers: req.headers
+  };
 
-  DS.findAll(resource, req.query || {}, {
-    headers:  _.pick(req.headers, config.headers)
-  }).then((reply) => {
-    debug('index', 'reply:', reply.length);
-    return res.json(reply);
-  }).catch(err => {
-    if (err === 401) {
-      return res.status(401).end();
-    }
-    debug(err);
-    next(err);
-  });
+  jsDataModel.findAll(resource, params, options)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
 
 };
 
 exports.show = function (req, res, next) {
 
-  let resource = checkResource(req);
+  let resource = req.params.pool + '/' + req.params.resource;
   let id = req.params.id;
+  let options = {
+    headers: req.headers
+  };
 
-  DS.find(resource, id, {
-    headers: _.pick(req.headers, config.headers),
-    //findStrategy: 'fallback',
-    //findFallbackAdapters: ['redis', 'http'],
-    qs: req.query,
-    bypassCache: false,
-    cacheResponse: true
-  }).then(reply => {
-    if (reply === 401) {
-      return res.status(401).end();
-    }
-    return res.json(reply);
-  }).catch(err => {
-    debug(err);
-    next(err);
-  });
+  jsDataModel.find(resource, id, options)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
+
+};
+
+exports.create = function (req, res, next) {
+
+  let resource = req.params.pool + '/' + req.params.resource;
+  let attrs = req.body;
+  let options = {
+    headers: req.headers,
+    qs: req.query
+  };
+
+  jsDataModel.create(resource, attrs, options)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
+
+};
+
+exports.update = function (req, res, next) {
+
+  let resource = req.params.pool + '/' + req.params.resource;
+  let id = req.params.id;
+  let attrs = req.body;
+  let options = {
+    headers: req.headers,
+    qs: req.query
+  };
+
+  jsDataModel.update(resource, id, attrs, options)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
+
+};
+
+exports.destroy = function (req, res, next) {
+
+  let resource = req.params.pool + '/' + req.params.resource;
+  let id = req.params.id;
+  let options = {
+    headers: req.headers,
+    qs: req.query
+  };
+
+  jsDataModel.destroy(resource, id, options)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
 
 };

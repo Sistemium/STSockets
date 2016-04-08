@@ -1,32 +1,30 @@
 {
   "name": "stsockets",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "server/app.js",
   "dependencies": {
+    "bluebird": "^3.3.4",
     "body-parser": "^1.5.0",
     "composable-middleware": "^0.3.0",
     "compression": "^1.0.1",
     "cookie-parser": "^1.0.1",
     "cors": "^2.7.1",
-    "debug": "^2.2.0",
+    "debug": ">=2.2.0",
     "dynamoose": "^0.4.1",
     "errorhandler": "~1.0.0",
-    "express": "~4.0.0",
+    "express": "^4.13.4",
     "express-session": "~1.0.2",
     "jade": "~1.2.0",
-    "js-data": "^2.9.0",
-    "js-data-redis": "^2.3.0",
     "lodash": "~3.10.0",
     "method-override": "~1.0.0",
-    "morgan": "~1.0.0",
+    "morgan": "~1.7.x",
     "mout": "^1.0.0",
     "node-uuid": "^1.4.3",
     "redis": "^2.5.3",
     "request": "^2.65.0",
     "serve-favicon": "~2.0.1",
     "socket.io": "^1.0.6",
-    "socket.io-client": "^1.0.6",
-    "socketio-jwt": "^2.0.2"
+    "socket.io-client": "^1.0.6"
   },
   "devDependencies": {
     "grunt": ">=0.4.4",
@@ -85,7 +83,7 @@
     "should": ">=3.3.1"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=5.4.0"
   },
   "scripts": {
     "start": "node server/app.js",

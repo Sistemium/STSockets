@@ -124,6 +124,6 @@ exports.list = function (req, res) {
     return socketData (socket);
   });
 
-  return res.json(200,data || []);
+  return res.status(200).json(data || []);
 
 };

@@ -33,7 +33,14 @@ var all = {
     'x-start-page'
   ],
 
-  STAPI: requiredProcessEnv('STAPI')
+  STAPI: requiredProcessEnv('STAPI'),
+
+  redis: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+    expireAfter: process.env.REDIS_EXPIRE_AFTER,
+    db: process.env.REDIS_DATABASE || 0
+  }
 
 };
 
