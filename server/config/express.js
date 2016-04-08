@@ -38,6 +38,7 @@ module.exports = function(app) {
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
   app.use(methodOverride());
+  app.set('redisdb', config.redis.db);
   //app.use(cookieParser());
   //app.use(allowCrossDomain);
 

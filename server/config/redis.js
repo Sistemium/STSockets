@@ -32,3 +32,12 @@ exports.hgetAsync = function (hashName, key) {
     return JSON.parse(res);
   });
 };
+
+exports.config = function (app) {
+  redisClient.select(app.get('redisdb'), function (err) {
+    if (err) throw new Error(err);
+    console.log('Redis client connected to db %s', app.get('redisdb'));
+  });
+
+  return redisClient;
+};

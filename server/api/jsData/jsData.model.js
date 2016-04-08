@@ -38,13 +38,7 @@ exports.find = function (resource, id, options) {
       method: 'GET',
       headers: headers
     };
-    let expireRedisAfter = config.redisHashes[resource]
-      && config.redisHashes[resource].expireAfter;
-
-    if (!expireRedisAfter) {
-      debug(`Config for redis hash not set ${resource} using default value instead`);
-      expireRedisAfter = config.redisConfig.expireAfter;
-    }
+    let expireRedisAfter = config.redis.expireAfter;
 
     let minUts = Date.now() - expireRedisAfter;
 
