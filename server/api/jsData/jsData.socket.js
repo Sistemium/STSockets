@@ -30,9 +30,7 @@ function emitEvent(method, resource, sourceSocketId) {
   debug('emitEvent:', method, resource);
   return (data) => {
     _.each(registeredSockets, function (subscriber) {
-      //todo check if subscribed on entity
-      //if (_.includes(subscriber.entities, resource)) {
-      // name of entity hardcoded for now
+      if (_.includes(subscriber.entities, resource)) {
         let event = 'jsData:' + method;
         let socket = subscriber.socket;
         if (socket.id !== sourceSocketId) {
@@ -42,7 +40,7 @@ function emitEvent(method, resource, sourceSocketId) {
             data: data
           });
         }
-      //}
+      }
     });
   }
 
@@ -65,7 +63,7 @@ exports.register = function (socket) {
         entities: entities
       });
     }
-    
+
     if (_.isFunction(callback)) {
       callback();
     }
