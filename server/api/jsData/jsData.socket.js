@@ -21,7 +21,9 @@ function handleError(callback) {
 function unRegister(socket) {
 
   let sockets = _.filter(registeredSockets, {socket: socket});
-  _.remove(registeredSockets, sockets);
+  _.each(sockets, socket => {
+    _.remove(registeredSockets, socket);
+  });
 
   debug('Registered sockets', registeredSockets.length);
 
