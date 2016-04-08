@@ -55,11 +55,17 @@ exports.register = function (socket) {
   socket.on('jsData:subscribe', function (entities,callback) {
     debug('subscribe: id:', socket.id, 'entities:', entities);
 
-    registeredSockets.push({
-      socket: socket,
-      entities: entities
-    });
-
+    let idx = _.findIndex(registeredSockets, {socket: socket});
+    if (idx >= 0) {
+      var difference = _.difference(entities, registeredSockets[idx].entities);
+      registeredSockets[idx].entities = registeredSockets[idx].entities.concat(difference);
+    } else {
+      registeredSockets.push({
+        socket: socket,
+        entities: entities
+      });
+    }
+    
     if (_.isFunction(callback)) {
       callback();
     }
