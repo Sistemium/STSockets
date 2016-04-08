@@ -31,9 +31,6 @@ exports.findAll = function (resource, params, options) {
 exports.find = function (resource, id, options) {
   let headers = _.pick(options.headers, config.headers);
 
-  // TODO: get expire time from config by resource name
-  let expireRedisAfter = 120000;
-
   return new Promise(function (resolve, reject) {
     let hash = config.STAPI + resource;
     let opts = {
@@ -41,6 +38,13 @@ exports.find = function (resource, id, options) {
       method: 'GET',
       headers: headers
     };
+    let expireRedisAfter = config.redisHashes[resource]
+      && config.redisHashes[resource].expireAfter;
+
+    if (!expireRedisAfter) {
+      throw new Error(`Config for redis hash not set ${resource}`);
+    }
+
     let minUts = Date.now() - expireRedisAfter;
 
     redis.hgetAsync(hash, id)

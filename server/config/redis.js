@@ -3,11 +3,23 @@
 var redis = require ('redis');
 var config = require ('./environment');
 var bluebird = require ('bluebird');
+var debug = require ('debug')('sts:redis');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 
-// TODO: respect connect and disconnect errors
 var redisClient = redis.createClient(config.redisConfig);
+
+redisClient.on('ready', function () {
+  debug('Redis client connection is established.');
+});
+
+redisClient.on('error', function () {
+  debug('Error in redis client encountered');
+});
+
+redisClient.on('end', function () {
+  debug('Redis server connection has closed');
+});
 
 exports.redisClient = redisClient;
 
