@@ -39,7 +39,7 @@ var all = {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
     expireAfter: process.env.REDIS_EXPIRE_AFTER,
-    db: process.env.REDIS_DATABASE || 1
+    db: process.env.REDIS_DATABASE || 0
   }
 
 };
