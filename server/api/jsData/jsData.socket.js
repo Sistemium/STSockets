@@ -19,11 +19,12 @@ function handleError(callback) {
 }
 
 function unRegister(socket) {
-  var idx = _.findIndex(registeredSockets, {socket: socket});
-  if (idx>=0) {
+  let idx;
+  while (idx = _.findIndex(registeredSockets, {socket: socket}) >= 0) {
     registeredSockets.splice(idx, 1);
-    debug('Registered sockets', registeredSockets.length);
   }
+  debug('Registered sockets', registeredSockets.length);
+
 }
 
 function emitEvent(method, resource, sourceSocketId) {
