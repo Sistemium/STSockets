@@ -37,7 +37,7 @@ function emitEvent(method, resource, sourceSocketId) {
         if (socket.id !== sourceSocketId) {
           debug('emitEvent:', event, 'id:', socket.id);
           socket.emit(event, {
-            data: data.id
+            data: _.pick(data,'id')
           });
         }
       }
