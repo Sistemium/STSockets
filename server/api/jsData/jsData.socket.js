@@ -37,14 +37,12 @@ function emitEvent(method, resource, sourceSocketId) {
         if (socket.id !== sourceSocketId) {
           debug('emitEvent:', event, 'id:', socket.id);
           socket.emit(event, {
-            resource: resource,
-            data: data
+            data: data.id
           });
         }
       }
     });
   }
-
 }
 
 exports.emitEvent = emitEvent;
