@@ -38,7 +38,8 @@ var all = {
   redisConfig: {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
-    url: process.env.REDIS_URL
+    url: process.env.REDIS_URL,
+    expireAfter: process.env.REDIS_EXPIRE_AFTER
   },
 
   redisHashes: {
