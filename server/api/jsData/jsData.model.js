@@ -73,7 +73,9 @@ exports.find = function (resource, id, options) {
       .catch((err)=> {
         console.error('jsData:find:redis:error', err);
         debug('find:makeRequest', opts);
-        makeRequest(opts, resolve, reject);
+        makeRequest(opts, (fromBackend) => {
+          resolve(fromBackend.data);
+        }, reject);
       });
 
   });
