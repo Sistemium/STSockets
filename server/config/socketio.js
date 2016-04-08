@@ -4,8 +4,6 @@
 
 'use strict';
 
-var config = require('./environment');
-var driverSocket = require('../api/driver/driver.socket');
 var statusSocket = require('../api/status/status.socket');
 var remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
 var sockData = require('../components/sockData');
