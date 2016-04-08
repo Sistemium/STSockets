@@ -1,6 +1,6 @@
 {
   "name": "stsockets",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "server/app.js",
   "dependencies": {
     "bluebird": "^3.3.4",
@@ -83,7 +83,7 @@
     "should": ">=3.3.1"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=5.4.0"
   },
   "scripts": {
     "start": "node server/app.js",
