@@ -19,10 +19,10 @@ function handleError(callback) {
 }
 
 function unRegister(socket) {
-  let idx;
-  while (idx = _.findIndex(registeredSockets, {socket: socket}) >= 0) {
-    registeredSockets.splice(idx, 1);
-  }
+
+  let sockets = _.filter(registeredSockets, {socket: socket});
+  _.remove(registeredSockets, sockets);
+
   debug('Registered sockets', registeredSockets.length);
 
 }
