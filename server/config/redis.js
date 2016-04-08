@@ -7,7 +7,7 @@ var debug = require ('debug')('sts:redis');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 
-var redisClient = redis.createClient(config.redisConfig);
+var redisClient = redis.createClient(config.redis);
 
 redisClient.on('ready', function () {
   debug('Redis client connection is established.');
