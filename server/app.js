@@ -6,6 +6,7 @@
 
 // Set default node environment to development
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+require('debug').log = console.info.bind(console);
 
 var express = require('express');
 var config = require('./config/environment');
