@@ -1,4 +1,5 @@
-var apiurlv3 = 'https://api.sistemium.com/api2/v3/';
+var config = require('../../config/environment');
+var apiV3 = config.APIv3;
 
 var request = require('request');
 var _ = require('lodash');
@@ -31,13 +32,14 @@ var getEntityData = function (req, socket) {
   ;
 
   var options = {
-    url: apiurlv3 + org + '/' + entity,
+    url: apiV3 + org + '/' + entity,
     headers: {
       authorization: token,
       deviceUUID: deviceUUID,
       "user-agent": userAgent,
       'if-none-match': '*',
-      'page-size': '500'
+      'page-size': '500',
+      'x-real-ip': socket.handshake.headers['x-real-ip'] || socket.handshake.address
     },
     qs: req.params
   };
