@@ -7,6 +7,8 @@ var debug = require ('debug')('sts:redis');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 
+console.log ('Redis config:', config.redis);
+
 var redisClient = redis.createClient(config.redis);
 
 redisClient.on('ready', function () {
