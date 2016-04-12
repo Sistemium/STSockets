@@ -2,10 +2,11 @@
 var events = require('events');
 var eventEmitter = new events.EventEmitter();
 var _ = require('lodash');
+var config = require('../../config/environment');
 
 var sockets = [];
-var apiurl = 'https://api.sistemium.com/api2/v1/';
-var apiurlv3 = 'https://api.sistemium.com/api2/v3/';
+var apiV1 = config.APIv1;
+var apiV3 = config.APIv3;
 
 var rolesUrl = 'https://api.sistemium.com/pha/roles';
 
@@ -39,12 +40,13 @@ var postApi = function (data, socket, callback) {
   ;
 
   var options = {
-    url: apiurl + org,
+    url: apiV1 + org,
     json: data,
     headers: {
       authorization: auth,
       deviceUUID: deviceUUID,
-      "user-agent": userAgent
+      'user-agent': userAgent,
+      'x-real-ip': socket.handshake.headers['x-real-ip'] || socket.handshake.address
     }
   };
 
@@ -93,13 +95,14 @@ var getLiveSearchData = function (entity, socket) {
   ;
 
   var options = {
-    url: apiurlv3 + org + '/' + entity,
+    url: apiV3 + org + '/' + entity,
     headers: {
       authorization: token,
       deviceUUID: deviceUUID,
       "user-agent": userAgent,
       'if-none-match': '*',
-      'page-size': '500'
+      'page-size': '500',
+      'x-real-ip': socket.handshake.headers['x-real-ip'] || socket.handshake.address
     }
   };
 
