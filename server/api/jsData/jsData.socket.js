@@ -64,6 +64,24 @@ exports.register = function (socket) {
     subscriptions.push(subscription);
 
     if (_.isFunction(callback)) {
+      callback({data:subscription.id});
+    }
+
+  });
+
+  socket.on('jsData:unsubscribe', function (id, callback) {
+
+    var idx = _.findIndex (subscriptions, {id: id});
+
+    if (idx>=0) {
+      var subscription = subscriptions [idx];
+      debug('jsData:unsubscribe', id, 'socket:', socket.id, 'filter:', subscription.filter);
+      subscriptions.splice(idx,1);
+    } else {
+      debug('jsData:unsubscribe', id, 'socket:', socket.id, 'no subscription');
+    }
+
+    if (_.isFunction(callback)) {
       callback(subscription.id);
     }
 
