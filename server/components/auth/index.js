@@ -30,7 +30,7 @@ var getRoles = function (token, callback) {
 
     if (response.statusCode === 200) {
 
-      var roles = JSON.parse(body)
+      var roles = JSON.parse(body);
       console.log('Authorized token:', token, 'account:', roles.account.name);
       callback(roles);
 
