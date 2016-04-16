@@ -17,12 +17,7 @@ exports.register = function(socket) {
     var xid = uuid.v4();
     var ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
-    console.info('status:change userId:', socket.userId,
-      'accessToken:', socket.accessToken,
-      'xid:', xid,
-      'ack:', !!clientAck,
-      JSON.stringify(status, null, 2)
-    );
+    console.info ('status:change userId:', socket.userId, status.url, socket.id);
 
     if (socket.accessToken) {
       var rec = {
