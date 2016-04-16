@@ -13,12 +13,12 @@ exports.findAll = function (resource, params, options) {
   return new Promise(function (resolve, reject) {
     let opts = {
       qs: params,
-      url: config.STAPI + resource,
+      url: config.APIv4 + resource,
       method: 'GET',
       headers: headers
     };
 
-    debug('findAll:opts', opts);
+    //debug('findAll:opts', opts);
 
     makeRequest(opts, fromBackend => {
       //debug('fromBackend', fromBackend);
@@ -32,7 +32,7 @@ exports.find = function (resource, id, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let hash = config.STAPI + resource;
+    let hash = config.APIv4 + resource;
     let opts = {
       url: hash + '/' + id,
       method: 'GET',
@@ -85,7 +85,7 @@ function createOrUpdate(method, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let url = config.STAPI + options.resource;
+    let url = config.APIv4 + options.resource;
     url += options.id ? '/' + options.id : '';
     let opts = {
       url: url,
@@ -136,7 +136,7 @@ exports.update = function (resource, id, attrs, options) {
 exports.destroy = function (resource, id, options) {
 
   return new Promise(function (resolve, reject) {
-    let url = config.STAPI + resource + '/' + id;
+    let url = config.APIv4 + resource + '/' + id;
     let opts = {
       url: url,
       method: 'DELETE',
