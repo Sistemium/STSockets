@@ -7,6 +7,16 @@ let makeRequest = require('./makeRequest');
 let redis = require('../../config/redis');
 let sockets = require('./jsData.socket');
 
+
+let LRU = require('lru-cache');
+let lruOptions = {
+  max: process.env.JSD_LRU_MAX || 100,
+  maxAge: process.env.JSD_LRU_MAX_AGE || (1000 * 30)
+};
+
+let findRequests = LRU(lruOptions);
+
+
 exports.findAll = function (resource, params, options) {
   let headers = _.pick(options.headers, config.headers);
 
@@ -45,27 +55,46 @@ exports.find = function (resource, id, options) {
     redis.hgetAsync(hash, id)
       .then((inRedis) => {
 
+        let hashId = hash+'#'+id;
+
         if (inRedis && inRedis.data && inRedis.uts > minUts) {
 
-          debug('find:redis', `${hash}#${id} (${inRedis.uts})`);
+          debug('find:redis', `${hashId} (${inRedis.uts})`);
           resolve(inRedis.data);
 
         } else {
 
-          debug('find:makeRequest', opts);
 
-          makeRequest(opts, (fromBackend) => {
-            if (fromBackend && fromBackend.data && fromBackend.status !== 500) {
-              fromBackend.uts = Date.now();
-              redis.hsetAsync(hash, id, fromBackend);
-              resolve(fromBackend.data);
-            } else {
-              reject({
-                error: 'Invalid backend response',
-                response: fromBackend
-              });
-            }
-          }, reject);
+          let pending = findRequests.get (hashId);
+
+          if (!pending) {
+            pending = new Promise ((resolveQ,rejectQ) => {
+
+              makeRequest(opts, (fromBackend) => {
+                if (fromBackend && fromBackend.data && fromBackend.status !== 500) {
+                  fromBackend.uts = Date.now();
+                  redis.hsetAsync(hash, id, fromBackend);
+                  resolveQ(fromBackend.data);
+                } else {
+                  rejectQ({
+                    error: 'Invalid backend response',
+                    response: fromBackend
+                  });
+                }
+              }, rejectQ);
+
+            });
+
+            findRequests.set(hashId, pending);
+            debug('find:makeRequest', opts);
+
+            pending.then().then(()=>{
+              findRequests.del(hashId);
+            });
+
+          }
+
+          pending.then(resolve,reject);
 
         }
 
@@ -99,7 +128,7 @@ function createOrUpdate(method, options) {
         fromBackend.uts = Date.now();
         //debug('fromBackend', fromBackend);
         resolve(fromBackend.data);
-        sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
+        //sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
       } else {
         reject({
           error: 'Invalid backend response',
