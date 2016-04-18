@@ -23,6 +23,12 @@ var all = {
     'x-start-page'
   ],
 
+  dynamo: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION
+  },
+
   redis: {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
