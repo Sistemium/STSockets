@@ -49,7 +49,7 @@ ee.on('session:state',function(changedSocket){
   _.each(sockets,function(socket){
     if (socket.subscriber['session:state']) {
 
-      if (socket.org == changedSocket.org) {
+      if (socket.org === changedSocket.org) {
 
         if (changedSocket.destroyed) {
           socket.emit('session:state:destroy', changedSocket.id);
@@ -81,33 +81,41 @@ exports.register = function(socket) {
 
   socket.on('sockData:register',function(ack){
     sockData.register(socket,function(res){
-      (typeof ack === 'function') && ack({
-        isAuthorized: !!res
-      });
+      if (typeof ack === 'function') {
+        ack({
+          isAuthorized: !!res
+        });
+      }
     });
   });
 
   socket.on('status:register',function(ack){
     statusSocket.register(socket);
-    (typeof ack === 'function') && ack({
-      isAuthorized: true
-    });
+    if (typeof ack === 'function') {
+      ack({
+        isAuthorized: true
+      });
+    }
   });
 
   socket.on('session:state:register',function(ack){
     socket.subscriber ['session:state'] = true;
     console.log ('session:state:register id:', socket.id);
-    (typeof ack === 'function') && ack({
-      isAuthorized: true
-    });
+    if (typeof ack === 'function') {
+      ack({
+        isAuthorized: true
+      });
+    }
   });
 
   socket.on('session:state:unregister',function(ack){
     socket.subscriber ['session:state'] = false;
     console.log ('session:state:unregister id:', socket.id);
-    (typeof ack === 'function') && ack({
-      isAuthorized: true
-    });
+    if (typeof ack === 'function') {
+      ack({
+        isAuthorized: true
+      });
+    }
   });
 
   socket.touch();
@@ -119,7 +127,7 @@ exports.list = function (req, res) {
   var selfOrg = _.get(req.auth,'account.org');
 
   var data = _.filter(sockets,function (socket){
-    return _.get(socket,'account.org') == selfOrg;
+    return _.get(socket,'account.org') === selfOrg;
   }).map(function (socket){
     return socketData (socket);
   });

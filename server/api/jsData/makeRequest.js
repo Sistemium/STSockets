@@ -31,7 +31,7 @@ module.exports = function makeRequest(options, resolve, reject) {
       return reject(401);
     }
 
-    if (_.isString(body) && !(body === '')) {
+    if (body && _.isString(body)) {
       try {
         //debug(body);
         result = JSON.parse(body);

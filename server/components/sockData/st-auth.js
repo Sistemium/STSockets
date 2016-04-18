@@ -26,7 +26,7 @@ exports.authByToken = function (token,userAgent) {
         jsonBody = false;
       }
 
-      if (!err && res.statusCode == 200 && jsonBody) {
+      if (!err && res.statusCode === 200 && jsonBody) {
         resolve (jsonBody);
       } else {
         reject (res.statusCode || err);

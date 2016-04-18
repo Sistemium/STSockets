@@ -123,7 +123,7 @@ var getLiveSearchData = function (entity, socket) {
         jsonBody = false;
       }
 
-      if (jsonBody && res.statusCode == 200) {
+      if (jsonBody && res.statusCode === 200) {
         console.info ('getLiveSearchData count:', jsonBody.length, res.headers.etag);
         lsd.store = _.union (lsd.store || [], jsonBody);
 
@@ -132,10 +132,10 @@ var getLiveSearchData = function (entity, socket) {
           return request.get(options, onResponse);
         }
         resolve (lsd.store);
-      } else if (res.statusCode == 400) {
+      } else if (res.statusCode === 400) {
         lsd.store = [];
         resolve (lsd.store);
-      } else if (res.statusCode == 204) {
+      } else if (res.statusCode === 204) {
         lsd.store = _.sortBy(_.uniq (lsd.store,'id'),'name');
         console.info ('getLiveSearchData final count:', lsd.store.length);
         console.info ('getLiveSearchData final sample:', _.first(lsd.store));
@@ -256,7 +256,7 @@ exports.register = function(socket,ack) {
 
   authByToken(socket.accessToken,socket.deviceUUID,socket.userAgent,function(res,status){
 
-    if (status==401) {
+    if (status === 401) {
 
       console.info(
         'sockData register id', socket.id,
