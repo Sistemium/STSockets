@@ -88,8 +88,12 @@ exports.find = function (resource, id, options) {
             findRequests.set(hashId, pending);
             debug('find:makeRequest', opts);
 
-            pending.then().then(()=>{
+            pending.then(()=>{
               findRequests.del(hashId);
+              //debug('delete:pending:then');
+            },()=>{
+              findRequests.del(hashId);
+              //debug('delete:pending:catch');
             });
 
           }
