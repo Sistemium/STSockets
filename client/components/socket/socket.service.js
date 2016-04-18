@@ -65,7 +65,7 @@ angular.module('stsocketsApp')
          */
         socket.on(modelName + ':refresh', function (items) {
           array = items;
-        })
+        });
       },
 
       /**

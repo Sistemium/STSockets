@@ -89,6 +89,6 @@ gulp.task('serve:dist', cb => {
     'build',
     'env:all',
     'env:prod',
-    ['start:server:prod', 'start:client'],
+    ['start:server:prod' /*'start:client'*/],
     cb);
 });
