@@ -7,11 +7,8 @@
     "jquery": "~1.11.0",
     "font-awesome": ">=4.1.0",
     "lodash": "~2.4.1",
-    "angular-socket-io": "~0.6.0",
-    "angular-ui-router": "~0.2.10",
     "sistemium-angular": "^0.2.0",
-    "sistemium-angular-bootstrap": "^0.1.8",
-    "socket.io-client": "^1.4.5"
+    "sistemium-angular-bootstrap": "^0.1.8"
   },
   "devDependencies": {
     "angular-mocks": ">=1.2.*",

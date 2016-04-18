@@ -1,7 +1,6 @@
 'use strict';
 
 angular.module('stsocketsApp', [
-    'btford.socket-io',
     'ui.router',
     'sistemium',
     'sistemiumBootstrap'
