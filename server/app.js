@@ -15,9 +15,9 @@ import http from 'http';
 //dynamodb configuration
 dynamoose.defaults.waitForActiveTimeout = 100;
 dynamoose.AWS.config.update({
-  accessKeyId: config.dynamo.accessKeyId,
-  secretAccessKey: config.dynamo.secretAccessKey,
-  region: config.dynamo.region
+  accessKeyId: config.AWS.accessKeyId,
+  secretAccessKey: config.AWS.secretAccessKey,
+  region: config.AWS.region
 });
 
 // Setup server
