@@ -47,12 +47,13 @@ function whenServerReady(cb) {
     100);
 }
 
-gulp.task('start:client', cb => {
-  whenServerReady(() => {
-    open('http://localhost:' + conf.config.port);
-    cb();
-  });
-});
+
+//gulp.task('start:client', cb => {
+//  whenServerReady(() => {
+//    open('http://localhost:' + conf.config.port);
+//    cb();
+//  });
+//});
 
 gulp.task('start:server:prod', () => {
   process.env.NODE_ENV = process.env.NODE_ENV || 'production';
@@ -78,7 +79,7 @@ gulp.task('serve', cb => {
     ['lint:scripts', 'inject', 'jade'],
     ['wiredep:client'],
     ['transpile:client', 'styles'],
-    ['env:all', 'start:server', 'start:client'],
+    ['env:all', 'start:server' /*'start:client'*/],
     'watch',
     cb);
 });
