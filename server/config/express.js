@@ -15,22 +15,20 @@ var path = require('path');
 var config = require('./environment');
 var cors = require('cors');
 
-//CORS middleware
-//var allowCrossDomain = function(req, res, next) {
-//  res.header('Access-Control-Allow-Origin', '*');
-//  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-//  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,ETag,Page-Size,Start-Page');
-//
-//  next();
-//};
-
 module.exports = function(app) {
+  
   var env = app.get('env');
 
   app.set('views', config.root + '/server/views');
   app.set('view engine', 'jade');
   app.use(cors({
-    allowedHeaders: [ 'Page-Size', 'Start-Page', 'ETag', 'X-Page-Size', 'X-Start-Page', 'Authorization', 'Content-Type', 'X-Return-Post'],
+    allowedHeaders: [
+      'Page-Size', 'Start-Page',
+      'X-Page-Size', 'X-Start-Page', 
+      'X-Return-Post',
+      'Authorization', 
+      'ETag', 'Content-Type'
+    ],
     exposedHeaders: ['X-Aggregate-Count']
   }));
   app.use(compression());
@@ -38,8 +36,7 @@ module.exports = function(app) {
   app.use(bodyParser.json());
   app.use(methodOverride());
   app.set('redisdb', config.redis.db);
-  //app.use(cookieParser());
-  //app.use(allowCrossDomain);
+
 
   if ('production' === env) {
     //app.use(favicon(path.join(config.root, 'public', 'favicon.ico')));
@@ -56,4 +53,5 @@ module.exports = function(app) {
     app.use(morgan('dev'));
     app.use(errorHandler()); // Error handler - has to be last
   }
+  
 };

@@ -1,48 +1,48 @@
 'use strict';
+
 var events = require('events');
 var eventEmitter = new events.EventEmitter();
 var _ = require('lodash');
 
 var sockets = [];
 
-eventEmitter.on('remoteCommands', function (params) {
 
-  var socket = _.find(sockets,{deviceUUID: params.deviceUUID});
+function emitToDevice (deviceUUID, commands) {
 
-  if (socket) {
-    socket.emit('remoteCommands', params.commands);
-    console.info('remoteCommands deviceUUID:', params.deviceUUID, 'commands:', params.commands);
-  }
+  var sockets = _.filter(sockets,{deviceUUID:deviceUUID});
 
-});
+  _.each(sockets,function (socket){
+    socket.emit('remoteCommands', commands);
+    console.info('remoteCommands deviceUUID:', deviceUUID, 'commands:', commands);
+  });
 
-var unRegister = function(socket) {
+  return sockets.length;
+
+}
+
+
+function unRegister (socket) {
   var idx = sockets.indexOf(socket);
   if (idx>-1) {
     sockets.splice(idx,1);
   }
-};
+}
 
 
-exports.register = function(socket) {
+function register (socket) {
   sockets.push(socket);
   console.info('remoteCommands register deviceUUID:', socket.deviceUUID);
   socket.on('disconnect',function(){
     unRegister(socket);
   });
-};
+}
 
-exports.pushCommand = function (deviceUUID,commands) {
 
-  var socket = _.find(sockets,{deviceUUID:deviceUUID});
+eventEmitter.on('remoteCommands', function (params) {
+  emitToDevice (params.deviceUUID, params.commands);
+});
 
-  if (socket) {
-    socket.emit('remoteCommands', commands);
-    console.info('remoteCommands deviceUUID:', deviceUUID, 'commands:', commands);
-    return 1;
-  }
 
-  return 0;
-
-};
+exports.register = register;
+exports.pushCommand = emitToDevice;
 

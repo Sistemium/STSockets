@@ -7,18 +7,28 @@ let makeRequest = require('./makeRequest');
 let redis = require('../../config/redis');
 let sockets = require('./jsData.socket');
 
+
+let LRU = require('lru-cache');
+let lruOptions = {
+  max: process.env.JSD_LRU_MAX || 100,
+  maxAge: process.env.JSD_LRU_MAX_AGE || (1000 * 30)
+};
+
+let findRequests = LRU(lruOptions);
+
+
 exports.findAll = function (resource, params, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
     let opts = {
       qs: params,
-      url: config.STAPI + resource,
+      url: config.APIv4 + resource,
       method: 'GET',
       headers: headers
     };
 
-    debug('findAll:opts', opts);
+    //debug('findAll:opts', opts);
 
     makeRequest(opts, fromBackend => {
       //debug('fromBackend', fromBackend);
@@ -32,7 +42,7 @@ exports.find = function (resource, id, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let hash = config.STAPI + resource;
+    let hash = config.APIv4 + resource;
     let opts = {
       url: hash + '/' + id,
       method: 'GET',
@@ -45,27 +55,50 @@ exports.find = function (resource, id, options) {
     redis.hgetAsync(hash, id)
       .then((inRedis) => {
 
+        let hashId = hash+'#'+id;
+
         if (inRedis && inRedis.data && inRedis.uts > minUts) {
 
-          debug('find:redis', `${hash}#${id} (${inRedis.uts})`);
+          debug('find:redis', `${hashId} (${inRedis.uts})`);
           resolve(inRedis.data);
 
         } else {
 
-          debug('find:makeRequest', opts);
 
-          makeRequest(opts, (fromBackend) => {
-            if (fromBackend && fromBackend.data && fromBackend.status !== 500) {
-              fromBackend.uts = Date.now();
-              redis.hsetAsync(hash, id, fromBackend);
-              resolve(fromBackend.data);
-            } else {
-              reject({
-                error: 'Invalid backend response',
-                response: fromBackend
-              });
-            }
-          }, reject);
+          let pending = findRequests.get (hashId);
+
+          if (!pending) {
+            pending = new Promise ((resolveQ,rejectQ) => {
+
+              makeRequest(opts, (fromBackend) => {
+                if (fromBackend && fromBackend.data && fromBackend.status !== 500) {
+                  fromBackend.uts = Date.now();
+                  redis.hsetAsync(hash, id, fromBackend);
+                  resolveQ(fromBackend.data);
+                } else {
+                  rejectQ({
+                    error: 'Invalid backend response',
+                    response: fromBackend
+                  });
+                }
+              }, rejectQ);
+
+            });
+
+            findRequests.set(hashId, pending);
+            debug('find:makeRequest', opts);
+
+            pending.then(()=>{
+              findRequests.del(hashId);
+              //debug('delete:pending:then');
+            },()=>{
+              findRequests.del(hashId);
+              //debug('delete:pending:catch');
+            });
+
+          }
+
+          pending.then(resolve,reject);
 
         }
 
@@ -85,7 +118,7 @@ function createOrUpdate(method, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let url = config.STAPI + options.resource;
+    let url = config.APIv4 + options.resource;
     url += options.id ? '/' + options.id : '';
     let opts = {
       url: url,
@@ -99,7 +132,7 @@ function createOrUpdate(method, options) {
         fromBackend.uts = Date.now();
         //debug('fromBackend', fromBackend);
         resolve(fromBackend.data);
-        sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
+        //sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
       } else {
         reject({
           error: 'Invalid backend response',
@@ -136,7 +169,7 @@ exports.update = function (resource, id, attrs, options) {
 exports.destroy = function (resource, id, options) {
 
   return new Promise(function (resolve, reject) {
-    let url = config.STAPI + resource + '/' + id;
+    let url = config.APIv4 + resource + '/' + id;
     let opts = {
       url: url,
       method: 'DELETE',

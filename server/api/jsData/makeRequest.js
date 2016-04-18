@@ -16,6 +16,11 @@ module.exports = function makeRequest(options, resolve, reject) {
       return reject(404);
     }
 
+    if (response.statusCode >= 500) {
+      console.error(response.body);
+      return reject(response.statusCode);
+    }
+
     if (response.statusCode === 204) {
       return resolve({
         date: response.headers.date
