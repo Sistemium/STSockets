@@ -6,6 +6,7 @@ import gulpLoadPlugins from 'gulp-load-plugins';
 import pipes from './reusablePipelines';
 import del from 'del';
 import _ from 'lodash';
+import runSequence from 'run-sequence';
 
 let plugins = gulpLoadPlugins();
 
@@ -40,7 +41,7 @@ gulp.task('clean:dist', () => del([`${conf.dist}/!(.git*|.openshift|Procfile)**`
 
 
 gulp.task('html', function () {
-  return gulp.src(`${clientPath}/{app,components}/**/*.jade`)
+  return gulp.src(`${conf.clientPath}/{app,components}/**/*.jade`)
     .pipe(plugins.jade({pretty: true}))
     .pipe(plugins.angularTemplatecache({
       module: 'authApiApp'
