@@ -55,3 +55,20 @@ exports.post = function (req,res,next) {
   });
 
 };
+
+exports.delete = function (req,res,next) {
+
+  var hash = config.APIv4 + req.params.pool + '/' + req.params.resource;
+
+  redis.delAsync (hash)
+    .then((res) => {
+      debug ('delAsync:success', hash, res);
+      return res;
+    })
+    .catch((res)=>{
+      debug ('delAsync:error', hash, res);
+    });
+
+  res.sendStatus(200);
+
+};

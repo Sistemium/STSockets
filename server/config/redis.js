@@ -39,6 +39,10 @@ exports.hdelAsync = function (hashName, key) {
   return redisClient.hdelAsync(hashName, key);
 };
 
+exports.delAsync = function (hashName) {
+  return redisClient.delAsync(hashName);
+};
+
 exports.config = function (app) {
   redisClient.select(app.get('redisdb'), function (err) {
     if (err) throw new Error(err);
