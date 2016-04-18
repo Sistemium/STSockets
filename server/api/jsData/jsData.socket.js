@@ -72,9 +72,10 @@ exports.register = function (socket) {
   socket.on('jsData:unsubscribe', function (id, callback) {
 
     var idx = _.findIndex (subscriptions, {id: id});
+    var subscription;
 
     if (idx>=0) {
-      var subscription = subscriptions [idx];
+      subscription = subscriptions [idx];
       debug('jsData:unsubscribe', id, 'socket:', socket.id, 'filter:', subscription.filter);
       subscriptions.splice(idx,1);
     } else {
@@ -82,7 +83,7 @@ exports.register = function (socket) {
     }
 
     if (_.isFunction(callback)) {
-      callback(subscription.id);
+      callback(subscription && subscription.id);
     }
 
   });
