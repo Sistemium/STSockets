@@ -50,58 +50,73 @@ exports.find = function (resource, id, options) {
     };
     let expireRedisAfter = config.redis.expireAfter;
 
-    let minUts = Date.now() - expireRedisAfter;
+    let authorizedHash = headers.authorization + '#' + hash;
+    redis.hgetAsync(authorizedHash, id).then(inRedis => {
+        return redis.hgetAsync(hash, id)
+          .then((inRedis) => {
+            let hashId = hash + '#' + id;
 
-    redis.hgetAsync(hash, id)
-      .then((inRedis) => {
+            if (inRedis && inRedis.data) {
 
-        let hashId = hash+'#'+id;
+              debug('find:redis', `${hashId} (${inRedis.uts})`);
+              resolve(inRedis.data);
 
-        if (inRedis && inRedis.data && inRedis.uts > minUts) {
+            } else {
 
-          debug('find:redis', `${hashId} (${inRedis.uts})`);
-          resolve(inRedis.data);
+              let pending = findRequests.get(hashId);
 
-        } else {
+              if (!pending) {
+                pending = new Promise((resolveQ, rejectQ) => {
 
+                  function onSuccess(fromBackend) {
+                    if (fromBackend && fromBackend.data && fromBackend.status !== 500) {
+                      redis.hsetAsync(authorizedHash, id, fromBackend.eTag).then(function (reply) {
 
-          let pending = findRequests.get (hashId);
+                        debug('hsetAsync:redis', reply);
 
-          if (!pending) {
-            pending = new Promise ((resolveQ,rejectQ) => {
+                        redis.redisClient.expire(authorizedHash, expireRedisAfter);
 
-              makeRequest(opts, (fromBackend) => {
-                if (fromBackend && fromBackend.data && fromBackend.status !== 500) {
-                  fromBackend.uts = Date.now();
-                  redis.hsetAsync(hash, id, fromBackend);
-                  resolveQ(fromBackend.data);
-                } else {
-                  rejectQ({
-                    error: 'Invalid backend response',
-                    response: fromBackend
-                  });
-                }
-              }, rejectQ);
+                      });
+                      redis.hsetAsync(hash, id, fromBackend).then(() => {
+                        redis.redisClient.expire(hash, expireRedisAfter);
+                      });
+                      resolveQ(fromBackend.data);
+                    } else {
+                      rejectQ({
+                        error: 'Invalid backend response',
+                        response: fromBackend
+                      });
+                    }
+                  }
 
-            });
+                  makeRequest(opts, onSuccess, rejectQ);
 
-            findRequests.set(hashId, pending);
+                });
+
+                findRequests.set(hashId, pending);
+                debug('find:makeRequest', opts);
+
+                pending.then(()=> {
+                  findRequests.del(hashId);
+                  //debug('delete:pending:then');
+                }, ()=> {
+                  findRequests.del(hashId);
+                  //debug('delete:pending:catch');
+                });
+
+              }
+
+              pending.then(resolve, reject);
+
+            }
+          })
+          .catch((err)=> {
+            console.error('jsData:find:redis:error', err);
             debug('find:makeRequest', opts);
-
-            pending.then(()=>{
-              findRequests.del(hashId);
-              //debug('delete:pending:then');
-            },()=>{
-              findRequests.del(hashId);
-              //debug('delete:pending:catch');
-            });
-
-          }
-
-          pending.then(resolve,reject);
-
-        }
-
+            makeRequest(opts, (fromBackend) => {
+              resolve(fromBackend.data);
+            }, reject);
+          });
       })
       .catch((err)=> {
         console.error('jsData:find:redis:error', err);
