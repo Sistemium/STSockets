@@ -32,6 +32,6 @@ export default {
       unit: [`${serverPath}/**/*.spec.js`, 'mocha.global.js']
     }
   },
-  karma: 'karma.conf.js',
+  karma: '../karma.conf.js',
   dist: 'dist'
 };

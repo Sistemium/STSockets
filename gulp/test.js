@@ -5,6 +5,7 @@ import paths from './conf';
 import {protractor, webdriver_update} from 'gulp-protractor';
 import {Server as KarmaServer} from 'karma';
 import pipes from './reusablePipelines';
+import runSequence from 'run-sequence';
 
 gulp.task('test:e2e', ['env:all', 'env:test', 'start:server', 'webdriver_update'], cb => {
   gulp.src(paths.client.e2e)
