@@ -17,13 +17,14 @@ var commands = {
 };
 
 function syncPickers (org) {
-  
+
   _.each (sockets, function (socket) {
-    
+
     if (socket.org === org && _.get(socket,'roles.picker')) {
       socket.emit ('remoteCommands', commands.fullSync);
+      debug ('syncPickers', socket.deviceUUID);
     }
-    
+
   });
 
 }
@@ -39,17 +40,17 @@ function needSync (org) {
       needSyncData [org] = false;
     },1000);
   }
-  
+
 }
 
 
 function subscribeJsData (id, filter) {
-  
+
   jsData.subscribe ({
     id: id,
     emit: function (event,data){
-      debug ('jsData:update', id, event, data);
-      var matches = event.match(/^[^\/]*/);
+      debug ('subscribeJsData', event, data);
+      var matches = (_.get(data,'resource')||'').match(/^[^\/]*/);
       if (matches.length) {
         needSync (matches[0]);
       }
@@ -61,7 +62,7 @@ function subscribeJsData (id, filter) {
   });
 }
 
-subscribeJsData(uuid.v4(),['dev/PickingOrder']);
+subscribeJsData('remoteCommands-'+uuid.v4(),['dev/PickingOrder']);
 
 function emitToDevice (deviceUUID, commands) {
 
@@ -91,20 +92,6 @@ function unRegister (socket) {
 function register (socket) {
   sockets.push(socket);
   console.info('remoteCommands register deviceUUID:', socket.deviceUUID);
-
-  jsData.subscribe ({
-    id: socket.id,
-    emit: function (event,data){
-      debug ('jsData:update', socket.id, event, data);
-      socket.emit ('remoteCommands', commands.fullSync);
-    }
-  }) (['dev/PickingOrder'],function(data){
-
-    socket.jsDataSubscriptions = [
-      data
-    ];
-
-  });
 
   socket.on('disconnect',function(){
     unRegister(socket);
