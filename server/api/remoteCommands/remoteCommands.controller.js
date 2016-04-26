@@ -20,3 +20,8 @@ exports.pushCommand = function(req, res) {
 
 };
 
+exports.list = function(req, res) {
+
+  return res.json(socket.list());
+
+};

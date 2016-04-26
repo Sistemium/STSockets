@@ -98,6 +98,14 @@ function register (socket) {
   });
 }
 
+function list () {
+  return _.map(sockets,function (socket) {
+    return {
+      id: socket.id,
+      deviceUUID: socket.deviceUUID
+    };
+  });
+}
 
 eventEmitter.on('remoteCommands', function (params) {
   emitToDevice (params.deviceUUID, params.commands);
@@ -106,4 +114,4 @@ eventEmitter.on('remoteCommands', function (params) {
 
 exports.register = register;
 exports.pushCommand = emitToDevice;
-
+exports.list = list;
