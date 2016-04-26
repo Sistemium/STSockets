@@ -213,7 +213,7 @@ var register = function (socket) {
 
     socket.touch();
 
-    console.info('data:v1', 'id:', socket.id, 'ack:', !!ack, 'payload:', JSON.stringify(data, null, 2));
+    console.info('data:v1', 'id:', socket.id, 'ack:', !!ack, 'payload:', (JSON.stringify(data)||'').length);
 
     postApi (data, socket, ack).on ('response',function () {
       socket.touch()
