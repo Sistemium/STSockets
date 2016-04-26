@@ -62,7 +62,7 @@ function subscribeJsData (id, filter) {
   });
 }
 
-subscribeJsData('remoteCommands-'+uuid.v4(),['dev/PickingOrder']);
+subscribeJsData('remoteCommands-'+uuid.v4(),['dev/PickingOrder','bs/PickingOrder']);
 
 function emitToDevice (deviceUUID, commands) {
 
