@@ -66,14 +66,14 @@ subscribeJsData('remoteCommands-'+uuid.v4(),['dev/PickingOrder']);
 
 function emitToDevice (deviceUUID, commands) {
 
-  var sockets = _.filter(sockets,{deviceUUID:deviceUUID});
+  var matchingSockets = _.filter(sockets,{deviceUUID:deviceUUID});
 
-  _.each(sockets,function (socket){
+  _.each(matchingSockets,function (socket){
     socket.emit('remoteCommands', commands);
     console.info('remoteCommands deviceUUID:', deviceUUID, 'commands:', commands);
   });
 
-  return sockets.length;
+  return matchingSockets.length;
 
 }
 
