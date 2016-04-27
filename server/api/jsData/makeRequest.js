@@ -9,26 +9,19 @@ module.exports = function makeRequest(options, resolve, reject) {
   request(options, function (error, response, body) {
     if (error) {
       debug('Error occurred:', error);
-      return reject();
+      return reject(500);
     }
 
-    if (response.statusCode === 404) {
-      return reject(404);
-    }
-
-    if (response.statusCode >= 500) {
-      console.error(response.body);
+    if (response.statusCode >= 400) {
+      console.error('makeRequest error', response.statusCode, options, response.body);
       return reject(response.statusCode);
     }
 
     if (response.statusCode === 204) {
       return resolve({
-        date: response.headers.date
+        date: response.headers.date,
+        status: response.statusCode
       });
-    }
-
-    if (response.statusCode === 401) {
-      return reject(401);
     }
 
     if (body && _.isString(body)) {
