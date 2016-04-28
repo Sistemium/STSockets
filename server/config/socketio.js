@@ -38,6 +38,13 @@ function onConnect(socket) {
 
     console.info('authorization:', 'id:', socket.id, data && data.accessToken);
 
+    if (socket.isAuthorized && socket.accessToken === data.accessToken) {
+      ack({
+        isAuthorized: true,
+        wasAuthorized: true
+      });
+    }
+
     if ((socket.isAuthorized = !!data.accessToken)) {
       socket.accessToken = data.accessToken;
 
