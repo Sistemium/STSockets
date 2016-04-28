@@ -48,11 +48,9 @@ function unRegister (socket) {
 
 }
 
+function subscribe (socket) {
 
-exports.register = function (socket) {
-
-  socket.on('jsData:subscribe', function (filter, callback) {
-
+  return function (filter, callback){
     var subscription = {
       id: uuid.v4(),
       socket: socket,
@@ -64,17 +62,20 @@ exports.register = function (socket) {
     subscriptions.push(subscription);
 
     if (_.isFunction(callback)) {
-      callback({data:subscription.id});
+      callback({data: subscription.id});
     }
+  };
 
-  });
+}
 
-  socket.on('jsData:unsubscribe', function (id, callback) {
+function unSubscribe (socket) {
+  return function (id, callback) {
 
     var idx = _.findIndex (subscriptions, {id: id});
+    var subscription;
 
     if (idx>=0) {
-      var subscription = subscriptions [idx];
+      subscription = subscriptions [idx];
       debug('jsData:unsubscribe', id, 'socket:', socket.id, 'filter:', subscription.filter);
       subscriptions.splice(idx,1);
     } else {
@@ -82,10 +83,20 @@ exports.register = function (socket) {
     }
 
     if (_.isFunction(callback)) {
-      callback(subscription.id);
+      callback(subscription && subscription.id);
     }
 
-  });
+  };
+}
+
+exports.subscribe = subscribe;
+exports.unSubscribe = unSubscribe;
+
+exports.register = function (socket) {
+
+  socket.on('jsData:subscribe', subscribe(socket));
+
+  socket.on('jsData:unsubscribe', unSubscribe(socket));
 
   socket.on('disconnect', function () {
     unRegister(socket);

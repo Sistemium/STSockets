@@ -23,10 +23,16 @@ var all = {
     'x-start-page'
   ],
 
+  AWS: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION
+  },
+
   redis: {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
-    expireAfter: process.env.REDIS_EXPIRE_AFTER || 600000,
+    expireAfter: process.env.REDIS_EXPIRE_AFTER || 30,
     db: process.env.REDIS_DATABASE || 0
   }
 

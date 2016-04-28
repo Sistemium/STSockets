@@ -10,5 +10,6 @@ debug ('index');
 // router.get('/:pool/:resource/:id', controller.show);
 router.post('/', controller.post);
 router.post('/:pool/:resource', controller.create);
+router.delete('/:pool/:resource', controller.delete);
 
 module.exports = router;

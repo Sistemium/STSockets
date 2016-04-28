@@ -50,66 +50,100 @@ exports.find = function (resource, id, options) {
     };
     let expireRedisAfter = config.redis.expireAfter;
 
+    if (!headers.authorization) {
+      reject ({
+        error: 'Authorization required',
+        status: 401
+      })
+    }
+
+    let authorizedHash = headers.authorization + '#' + hash;
+    let hashId = hash + '#' + id;
     let minUts = Date.now() - expireRedisAfter;
 
-    redis.hgetAsync(hash, id)
-      .then((inRedis) => {
+    function getFromBackend () {
 
-        let hashId = hash+'#'+id;
+      let pending = findRequests.get(hashId);
 
-        if (inRedis && inRedis.data && inRedis.uts > minUts) {
+      if (!pending) {
 
-          debug('find:redis', `${hashId} (${inRedis.uts})`);
-          resolve(inRedis.data);
+        pending = new Promise((resolvePending, rejectPending) => {
 
-        } else {
+          function onSuccess(fromBackend) {
+            if (fromBackend && fromBackend.data) {
+              let authData = {
+                eTag: fromBackend.eTag,
+                uts: Date.now()
+              };
 
+              redis.hsetAsync(authorizedHash, id, authData).then(function (reply) {
+                debug('hsetAsync:authorizedHash', reply, authorizedHash, id, fromBackend.eTag);
+                redis.redisClient.expire(authorizedHash, expireRedisAfter);
+              });
 
-          let pending = findRequests.get (hashId);
+              fromBackend.uts = Date.now();
+              redis.hsetAsync(hash, id, fromBackend);
 
-          if (!pending) {
-            pending = new Promise ((resolveQ,rejectQ) => {
+              resolvePending(fromBackend.data);
 
-              makeRequest(opts, (fromBackend) => {
-                if (fromBackend && fromBackend.data && fromBackend.status !== 500) {
-                  fromBackend.uts = Date.now();
-                  redis.hsetAsync(hash, id, fromBackend);
-                  resolveQ(fromBackend.data);
-                } else {
-                  rejectQ({
-                    error: 'Invalid backend response',
-                    response: fromBackend
-                  });
-                }
-              }, rejectQ);
+            } else {
 
-            });
+              rejectPending({
+                error: 'Invalid backend response',
+                response: fromBackend,
+                status: fromBackend.status
+              });
 
-            findRequests.set(hashId, pending);
-            debug('find:makeRequest', opts);
-
-            pending.then(()=>{
-              findRequests.del(hashId);
-              //debug('delete:pending:then');
-            },()=>{
-              findRequests.del(hashId);
-              //debug('delete:pending:catch');
-            });
-
+            }
           }
 
-          pending.then(resolve,reject);
+          makeRequest(opts, onSuccess, rejectPending);
 
-        }
+        });
 
-      })
-      .catch((err)=> {
-        console.error('jsData:find:redis:error', err);
+        findRequests.set(hashId, pending);
         debug('find:makeRequest', opts);
-        makeRequest(opts, (fromBackend) => {
-          resolve(fromBackend.data);
-        }, reject);
-      });
+
+        pending.then(()=> {
+          findRequests.del(hashId);
+          //debug('delete:pending:then');
+        }, ()=> {
+          findRequests.del(hashId);
+          //debug('delete:pending:catch');
+        });
+
+      }
+
+      pending.then(resolve, reject);
+      
+    }
+
+    function gotFromRedisOrBackend (inRedis) {
+      if (inRedis && inRedis.data && inRedis.uts > minUts) {
+        debug('find:redis', `${hashId} (${inRedis.uts})`);
+        resolve(inRedis.data);
+      } else {
+        getFromBackend();
+      }
+    }
+
+    redis.hgetAsync(authorizedHash, id).then((authData) => {
+
+      if (authData && authData.uts > expireRedisAfter) {
+        return redis.hgetAsync(hash, id)
+          .then(gotFromRedisOrBackend)
+          .catch((err)=> {
+            console.error('jsData:find:redis:error', err);
+            debug('find:makeRequest', opts);
+            makeRequest(opts, (fromBackend) => {
+              resolve(fromBackend.data);
+            }, reject);
+          });
+      } else {
+        return getFromBackend ();
+      }
+
+    });
 
   });
 };

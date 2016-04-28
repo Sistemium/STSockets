@@ -21,7 +21,7 @@ exports.get = function (request,socket) {
 
 };
 
-var getEntityData = function (req, socket) {
+function getEntityData (req, socket) {
 
   var
     token = socket.accessToken,
@@ -71,7 +71,7 @@ var getEntityData = function (req, socket) {
         jsonBody = false;
       }
 
-      if (jsonBody && jsonBody.length && res.statusCode == 200) {
+      if (jsonBody && jsonBody.length && res.statusCode === 200) {
         console.info ('st-api-v3.getEntityData got count:', jsonBody.length, 'ETag:', res.headers.etag);
         storedEntity.data = _.unique (_.union (jsonBody, storedEntity.data),'id');
 
@@ -80,7 +80,7 @@ var getEntityData = function (req, socket) {
           return request.get(options, onResponse);
         }
         resolve (storedEntity.data);
-      } else if (res.statusCode == 204) {
+      } else if (res.statusCode === 204) {
         console.info ('st-api-v3.getEntityData final count:', storedEntity.data.length);
         console.info ('st-api-v3.getEntityData final sample:', _.first(storedEntity.data));
         resolve (storedEntity.data);
@@ -97,4 +97,4 @@ var getEntityData = function (req, socket) {
 
   return new Promise (executor);
 
-};
+}

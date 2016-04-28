@@ -9,14 +9,19 @@ exports.pushCommand = function(req, res) {
   if (deviceUUID) {
     var l = socket.pushCommand(deviceUUID,req.body);
     if (l) {
-      return res.json(200, {message: 'OK', count: l});
+      return res.json({message: 'OK', count: l});
     } else {
-      return res.json(404, {error: 'device not connected'});
+      return res.status(404).json({error: 'device not connected'});
     }
 
   } else {
-    return res.json(400,{error: 'deviceUUID is required'});
+    return res.status(404).json({error: 'deviceUUID is required'});
   }
 
 };
 
+exports.list = function(req, res) {
+
+  return res.json(socket.list());
+
+};

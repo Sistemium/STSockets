@@ -38,7 +38,7 @@ function onConnect(socket) {
 
     console.info('authorization:', 'id:', socket.id, data && data.accessToken);
 
-    if (socket.isAuthorized = !!data.accessToken) {
+    if ((socket.isAuthorized = !!data.accessToken)) {
       socket.accessToken = data.accessToken;
 
       jsDataSocket.register(socket);
@@ -99,5 +99,5 @@ module.exports = function (socketio) {
     onConnect(socket);
 
   });
-  
+
 };
