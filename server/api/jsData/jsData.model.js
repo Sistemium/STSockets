@@ -23,7 +23,7 @@ exports.findAll = function (resource, params, options) {
   return new Promise(function (resolve, reject) {
     let opts = {
       qs: params,
-      url: config.APIv4 + resource,
+      url: config.apiV4 (resource),
       method: 'GET',
       headers: headers
     };
@@ -42,7 +42,7 @@ exports.find = function (resource, id, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let hash = config.APIv4 + resource;
+    let hash = config.apiV4 (resource);
     let opts = {
       url: hash + '/' + id,
       method: 'GET',
@@ -115,7 +115,7 @@ exports.find = function (resource, id, options) {
       }
 
       pending.then(resolve, reject);
-      
+
     }
 
     function gotFromRedisOrBackend (inRedis) {
@@ -152,7 +152,7 @@ function createOrUpdate(method, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let url = config.APIv4 + options.resource;
+    let url = config.apiV4 (options.resource);
     url += options.id ? '/' + options.id : '';
     let opts = {
       url: url,
@@ -203,7 +203,7 @@ exports.update = function (resource, id, attrs, options) {
 exports.destroy = function (resource, id, options) {
 
   return new Promise(function (resolve, reject) {
-    let url = config.APIv4 + resource + '/' + id;
+    let url = config.apiV4 (resource) + '/' + id;
     let opts = {
       url: url,
       method: 'DELETE',

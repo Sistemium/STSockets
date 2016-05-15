@@ -34,9 +34,34 @@ var all = {
     port: process.env.REDIS_PORT,
     expireAfter: process.env.REDIS_EXPIRE_AFTER || 30,
     db: process.env.REDIS_DATABASE || 0
+  },
+
+  apiV4: function (resource) {
+
+    var org = resource.match (/(^[^\/]*)\/(.*)/);
+    var key = 'APIv4';
+    var orgKey = key + (org ? '_' + org[1] : '');
+
+    console.log (org, orgKey);
+
+    if (org && this[orgKey]) {
+      console.log (this[orgKey] + org [2]);
+      return this[orgKey] + org [2];
+    }
+
+    return this [key] + resource;
+
   }
 
 };
+
+_.each (process.env, function(val, key) {
+
+  if (/APIv\d.*/.test(key)) {
+    all [key] = val;
+  }
+
+});
 
 // Export the config object based on the NODE_ENV
 // ==============================================
