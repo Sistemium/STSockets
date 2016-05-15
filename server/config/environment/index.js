@@ -42,10 +42,7 @@ var all = {
     var key = 'APIv4';
     var orgKey = key + (org ? '_' + org[1] : '');
 
-    console.log (org, orgKey);
-
     if (org && this[orgKey]) {
-      console.log (this[orgKey] + org [2]);
       return this[orgKey] + org [2];
     }
 
