@@ -24,6 +24,21 @@ function handleError (response, next) {
   }
 }
 
+exports.indexBy = function (req, res, next) {
+
+  let resource = `${req.params.pool}/${req.params.parentResource}/${req.params.parentId}/${req.params.resource}`;
+  let params = req.query;
+  let options = {
+    headers: req.headers
+  };
+
+  jsDataModel.findAll(resource, params, options)
+    .then(handleResponse(res))
+    .catch(handleError(res, next))
+  ;
+
+};
+
 exports.index = function (req, res, next) {
 
   let resource = req.params.pool + '/' + req.params.resource;
