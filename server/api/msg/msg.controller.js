@@ -8,20 +8,22 @@ let socket = require('../jsData/jsData.socket');
 let async = require('async');
 
 function processObject (msg) {
-  return redis.hdelAsync (config.APIv4 + msg.resource, msg.resourceId)
+  return redis.hdelAsync (config.apiV4(msg.resource), msg.resourceId)
     .then((res) => {
-      debug ('hdelAsync', config.APIv4 + msg.resource, msg.resourceId, res);
+      debug ('hdelAsync', config.apiV4(msg.resource), msg.resourceId, res);
       return res;
     });
 }
 
 exports.create = function (req,res,next) {
 
-  var msg = req.body||{};
+  var msg = req.body;
+
+  _.assign(msg, {
+    resource: req.params.pool + '/' + req.params.resource
+  });
   _.assign (msg,req.query);
-
-  //debug ('create', msg);
-
+  
   processObject(msg)
     .then(()=>{
       res.sendStatus(201);
@@ -33,7 +35,11 @@ exports.create = function (req,res,next) {
 
 exports.post = function (req,res,next) {
 
-  var data = req.body || [];
+  var data = req.body || req.query || [];
+
+  if (!_.isArray(data)) {
+    data = [data];
+  }
 
   //debug ('post', data);
 
@@ -58,7 +64,7 @@ exports.post = function (req,res,next) {
 
 exports.delete = function (req,res,next) {
 
-  var hash = config.APIv4 + req.params.pool + '/' + req.params.resource;
+  var hash = config.apiV4(req.params.pool + '/' + req.params.resource);
 
   redis.delAsync (hash)
     .then((res) => {
