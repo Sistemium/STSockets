@@ -38,6 +38,11 @@ var all = {
 
   apiV4: function (resource) {
 
+    if (!resource) {
+      console.error ('apiV4 empty resource');
+      return false;
+    }
+
     var org = resource.match (/(^[^\/]*)\/(.*)/);
     var key = 'APIv4';
     var orgKey = key + (org ? '_' + org[1] : '');
