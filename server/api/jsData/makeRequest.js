@@ -37,6 +37,7 @@ module.exports = function makeRequest(options, resolve, reject) {
     }
 
     return resolve({
+      xOffset: response.headers['x-offset'],
       eTag: response.headers.etag,
       date: response.headers.date,
       data: result,

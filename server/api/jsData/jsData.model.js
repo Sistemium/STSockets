@@ -32,7 +32,7 @@ exports.findAll = function (resource, params, options) {
 
     makeRequest(opts, fromBackend => {
       //debug('fromBackend', fromBackend);
-      resolve(fromBackend.data);
+      resolve(fromBackend);
     }, reject);
   });
 

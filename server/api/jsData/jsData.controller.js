@@ -3,7 +3,19 @@ let jsDataModel = require('./jsData.model');
 
 
 function handleResponse (response) {
-  return data => response.json(data);
+  return (data) => {
+    response.json(data);
+  };
+}
+
+function handleFindAllResponse (response) {
+  return (res) => {
+    let offset = res && res.xOffset;
+    if (offset) {
+      response.set('X-Offset',offset);
+    }
+    response.json(res.data);
+  };
 }
 
 function handleError (response, next) {
@@ -33,7 +45,7 @@ exports.indexBy = function (req, res, next) {
   };
 
   jsDataModel.findAll(resource, params, options)
-    .then(handleResponse(res))
+    .then(handleFindAllResponse(res))
     .catch(handleError(res, next))
   ;
 
@@ -48,7 +60,7 @@ exports.index = function (req, res, next) {
   };
 
   jsDataModel.findAll(resource, params, options)
-    .then(handleResponse(res))
+    .then(handleFindAllResponse(res))
     .catch(handleError(res, next))
   ;
 

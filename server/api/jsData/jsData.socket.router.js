@@ -12,6 +12,21 @@ function handleSuccess(callback, method, resource, params) {
   }
 }
 
+function handleFindAllSuccess(callback, method, resource, params) {
+  return reply => {
+    let offset = reply && reply.xOffset;
+    var res = {
+      data: reply.data || [],
+      offset: offset
+    };
+    if (offset) {
+      res.offset = offset;
+    }
+    console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
+    callback(res);
+    return reply;
+  }
+}
 
 function handleError(callback) {
   return err => {
@@ -31,7 +46,7 @@ function router (data, callback) {
     case 'findAll' :
     {
       jsDataModel.findAll(data.resource, data.params, data.options)
-        .then(success)
+        .then(handleFindAllSuccess(callback, data.method, data.resource, data.id || data.params))
         .catch(failure)
       ;
       break;
