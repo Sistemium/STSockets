@@ -78,7 +78,7 @@ var authByToken = function (token,deviceUUID,userAgent,callback) {
       jsonBody = false;
     }
 
-    callback(err ? false : jsonBody, res.statusCode);
+    callback(err ? false : jsonBody, res && res.statusCode);
   });
 
 };
