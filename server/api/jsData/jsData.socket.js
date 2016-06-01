@@ -113,6 +113,10 @@ exports.register = function (socket) {
       sourceSocketId: socket.id
     });
 
+    if (socket.deviceUUID && data.attrs) {
+      data.attrs.deviceUUID = socket.deviceUUID;
+    }
+
     //debug('jsData event', data);
 
     router (data, callback);
