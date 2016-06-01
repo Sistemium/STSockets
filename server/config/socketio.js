@@ -39,7 +39,7 @@ function onConnect(socket) {
     console.info('authorization:', 'id:', socket.id, data && data.accessToken);
 
     if (socket.isAuthorized && socket.accessToken === data.accessToken) {
-      ack({
+      return ack({
         isAuthorized: true,
         wasAuthorized: true
       });
