@@ -2,6 +2,7 @@
 
 let jsDataModel = require('./jsData.model');
 let debug = require('debug')('sts:jsData:socket:router');
+let _ = require('lodash');
 
 function handleSuccess(callback, method, resource, params) {
   return reply => {
@@ -40,12 +41,25 @@ function router (data, callback) {
 
   var success = handleSuccess(callback, data.method, data.resource, data.id || data.params);
   var failure = handleError(callback);
+  var offset = _.get(data,'options.offset');
+
+  var params = data.params || {};
+
+  if (offset) {
+    params['x-offset:'] = offset;
+  }
+
+  var pageSize = _.get(data,'options.pageSize');
+
+  if (pageSize) {
+    params['x-page-size:'] = pageSize;
+  }
 
   switch (data.method) {
 
     case 'findAll' :
     {
-      jsDataModel.findAll(data.resource, data.params, data.options)
+      jsDataModel.findAll(data.resource, params, data.options)
         .then(handleFindAllSuccess(callback, data.method, data.resource, data.id || data.params))
         .catch(failure)
       ;
