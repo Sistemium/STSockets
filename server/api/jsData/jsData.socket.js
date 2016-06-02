@@ -114,8 +114,11 @@ exports.register = function (socket) {
       sourceSocketId: socket.id
     });
 
-    if (socket.deviceUUID && data.attrs) {
-      data.attrs.deviceUUID = socket.deviceUUID;
+    if (socket.deviceUUID) {
+      data.options.headers.deviceuuid = socket.deviceUUID;
+      if (data.attrs) {
+        data.attrs.deviceUUID = socket.deviceUUID;
+      }
     }
 
     //debug('jsData event', data);
