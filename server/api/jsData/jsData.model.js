@@ -51,10 +51,17 @@ exports.find = function (resource, id, options) {
     let expireRedisAfter = config.redis.expireAfter;
 
     if (!headers.authorization) {
-      reject ({
-        error: 'Authorization required',
-        status: 401
-      })
+      reject (
+        // 'Authorization required'
+        401
+      );
+    }
+
+    if (!id) {
+      reject(
+        //'Find requires id',
+        400
+      );
     }
 
     let authorizedHash = headers.authorization + '#' + hash;
