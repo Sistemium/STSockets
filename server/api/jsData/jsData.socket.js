@@ -108,7 +108,8 @@ exports.register = function (socket) {
     _.defaultsDeep(data.options, {
       headers: {
         authorization: socket.accessToken,
-        'x-return-post': true
+        'x-return-post': true,
+        'user-agent': socket.userAgent
       },
       sourceSocketId: socket.id
     });

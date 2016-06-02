@@ -20,7 +20,8 @@ var all = {
     'authorization',
     'x-page-size',
     'x-return-post',
-    'x-start-page'
+    'x-start-page',
+    'user-agent'
   ],
 
   AWS: {
