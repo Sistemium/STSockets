@@ -6,7 +6,10 @@ let _ = require('lodash');
 
 function handleSuccess(callback, method, resource, params) {
   return reply => {
-    var res = {data: reply || []};
+    var res = {
+      data: reply || [],
+      resource: resource
+    };
     console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
     callback(res);
     return reply;
@@ -18,7 +21,8 @@ function handleFindAllSuccess(callback, method, resource, params) {
     let offset = reply && reply.xOffset;
     var res = {
       data: reply.data || [],
-      offset: offset
+      offset: offset,
+      resource: resource
     };
     if (offset) {
       res.offset = offset;
