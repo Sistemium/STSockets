@@ -19,7 +19,10 @@ function handleFindAllResponse (response) {
 }
 
 function handleError (response, next) {
-  return err => {
+  return errObj => {
+    
+    let err = errObj && errObj.status || errObj; 
+    
     if (err === 401) {
       return response.status(401).end();
     }

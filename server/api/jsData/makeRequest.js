@@ -9,12 +9,18 @@ module.exports = function makeRequest(options, resolve, reject) {
   request(options, function (error, response, body) {
     if (error) {
       debug('Error occurred:', error);
-      return reject(500);
+      return reject({
+        status: response && response.status || 500,
+        text: body || 'Internal server error'
+      });
     }
 
     if (response.statusCode >= 400) {
       console.error('makeRequest error', response.statusCode, options, response.body);
-      return reject(response.statusCode);
+      return reject({
+        status: response.statusCode,
+        text: response.body
+      });
     }
 
     if (response.statusCode === 204) {

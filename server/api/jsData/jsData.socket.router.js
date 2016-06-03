@@ -33,10 +33,15 @@ function handleFindAllSuccess(callback, method, resource, params) {
   }
 }
 
-function handleError(callback) {
-  return err => {
+function handleError(callback, resource) {
+  return errObj => {
+    let err = errObj && errObj.status || errObj;
     debug('error occurred', err);
-    callback({error: err})
+    callback({
+      error: err,
+      text: errObj.text,
+      resource: resource
+    })
   };
 }
 
@@ -44,7 +49,7 @@ function handleError(callback) {
 function router (data, callback) {
 
   var success = handleSuccess(callback, data.method, data.resource, data.id || data.params);
-  var failure = handleError(callback);
+  var failure = handleError(callback, data.resource);
   var offset = _.get(data,'options.offset');
 
   var params = data.params || {};
