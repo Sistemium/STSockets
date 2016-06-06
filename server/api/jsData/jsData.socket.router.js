@@ -8,7 +8,8 @@ function handleSuccess(callback, method, resource, params) {
   return reply => {
     var res = {
       data: reply || [],
-      resource: resource
+      resource: resource,
+      method: method
     };
     console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
     callback(res);
@@ -22,7 +23,8 @@ function handleFindAllSuccess(callback, method, resource, params) {
     var res = {
       data: reply.data || [],
       offset: offset,
-      resource: resource
+      resource: resource,
+      method: method
     };
     if (offset) {
       res.offset = offset;
@@ -33,14 +35,15 @@ function handleFindAllSuccess(callback, method, resource, params) {
   }
 }
 
-function handleError(callback, resource) {
+function handleError(callback, method, resource) {
   return errObj => {
     let err = errObj && errObj.status || errObj;
     debug('error occurred', err);
     callback({
       error: err,
       text: errObj.text,
-      resource: resource
+      resource: resource,
+      method: method
     })
   };
 }
@@ -49,7 +52,7 @@ function handleError(callback, resource) {
 function router (data, callback) {
 
   var success = handleSuccess(callback, data.method, data.resource, data.id || data.params);
-  var failure = handleError(callback, data.resource);
+  var failure = handleError(callback, data.method, data.resource);
   var offset = _.get(data,'options.offset');
 
   var params = data.params || {};
