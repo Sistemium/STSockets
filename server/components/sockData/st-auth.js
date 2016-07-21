@@ -1,4 +1,6 @@
-var rolesUrl = 'https://api.sistemium.com/pha/roles';
+var config = require('../../config/environment');
+
+var rolesUrl = config.pha.roles;
 var Q = require ('q');
 var request = require('request');
 

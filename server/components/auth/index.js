@@ -1,5 +1,6 @@
 'use strict';
 
+var config = require('../../config/environment');
 var request = require('request');
 
 var tokens = {};
@@ -15,7 +16,7 @@ var debug = require ('debug') ('sts:auth');
 var getRoles = function (token, callback) {
 
   var options = {
-    url: 'https://api.sistemium.com/pha/roles',
+    url: config.pha.roles,
     headers: {
       'Authorization': token
     }

@@ -54,6 +54,10 @@ var all = {
 
     return this [key] + resource;
 
+  },
+
+  pha: {
+    roles: process.env.PHA_ROLES || 'https://api.sistemium.com/pha/roles'
   }
 
 };

@@ -8,7 +8,7 @@ var sockets = [];
 var apiV1 = config.APIv1;
 var apiV3 = config.APIv3;
 
-var rolesUrl = 'https://api.sistemium.com/pha/roles';
+var rolesUrl = config.pha.roles;
 
 var request = require('request');
 
