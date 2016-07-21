@@ -1,6 +1,6 @@
 {
   "name": "stsockets",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "main": "server/app.js",
   "dependencies": {
     "async": "^1.5.2",
