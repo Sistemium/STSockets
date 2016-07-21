@@ -36,7 +36,17 @@ function onConnect(socket) {
 
     var ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
-    console.info('authorization:', 'id:', socket.id, data && data.accessToken);
+    if (!data) {
+      return ack({
+        isAuthorized: false
+      });
+    }
+
+    if (data.bundleIdentifier && data.appVersion) {
+      socket.userAgent = data.bundleIdentifier + '/' + data.appVersion;
+    }
+
+    console.info('authorization:', 'id:', socket.id, socket.userAgent, data.accessToken);
 
     if (socket.isAuthorized && socket.accessToken === data.accessToken) {
       return ack({

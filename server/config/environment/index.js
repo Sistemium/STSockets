@@ -21,7 +21,8 @@ var all = {
     'x-page-size',
     'x-return-post',
     'x-start-page',
-    'user-agent'
+    'user-agent',
+    'deviceuuid'
   ],
 
   AWS: {

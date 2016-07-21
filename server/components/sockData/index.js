@@ -215,9 +215,10 @@ var register = function (socket) {
 
     console.info('data:v1', 'id:', socket.id, 'ack:', !!ack, 'payload:', (JSON.stringify(data)||'').length);
 
-    postApi (data, socket, ack).on ('response',function () {
-      socket.touch()
-    });
+    postApi (data, socket, ack)
+      .on ('response', () => {
+        socket.touch()
+      });
 
   });
 
