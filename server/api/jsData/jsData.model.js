@@ -70,7 +70,8 @@ exports.find = function (resource, id, options) {
 
     function getFromBackend () {
 
-      let pending = findRequests.get(hashId);
+      // TODO: check if possible to use pending by unauthorized hash
+      let pending = findRequests.get(authorizedHash);
 
       if (!pending) {
 
@@ -108,7 +109,7 @@ exports.find = function (resource, id, options) {
 
         });
 
-        findRequests.set(hashId, pending);
+        findRequests.set(authorizedHash, pending);
         debug('find:makeRequest', opts);
 
         pending.then(()=> {
