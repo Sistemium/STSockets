@@ -71,7 +71,8 @@ exports.find = function (resource, id, options) {
     function getFromBackend () {
 
       // TODO: check if possible to use pending by unauthorized hash
-      let pending = findRequests.get(authorizedHash);
+      let authorizedHashId = `${authorizedHash}#${id}`;
+      let pending = findRequests.get(authorizedHashId);
 
       if (!pending) {
 
@@ -109,14 +110,14 @@ exports.find = function (resource, id, options) {
 
         });
 
-        findRequests.set(authorizedHash, pending);
+        findRequests.set(authorizedHashId, pending);
         debug('find:makeRequest', opts);
 
         pending.then(()=> {
-          findRequests.del(hashId);
+          findRequests.del(authorizedHashId);
           //debug('delete:pending:then');
         }, ()=> {
-          findRequests.del(hashId);
+          findRequests.del(authorizedHashId);
           //debug('delete:pending:catch');
         });
 
