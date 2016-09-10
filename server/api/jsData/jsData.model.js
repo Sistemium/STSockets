@@ -162,7 +162,9 @@ function createOrUpdate(method, options) {
 
   return new Promise(function (resolve, reject) {
     let url = config.apiV4 (options.resource);
+    let hash = url;
     url += options.id ? '/' + options.id : '';
+
     let opts = {
       url: url,
       method: method,
@@ -170,10 +172,16 @@ function createOrUpdate(method, options) {
       json: options.attrs,
       qs: options.qs
     };
+
+    let id = options.id || _.get(options, 'attrs.id');
+
     makeRequest(opts, (fromBackend) => {
       if (fromBackend && fromBackend.data) {
         fromBackend.uts = Date.now();
         //debug('fromBackend', fromBackend);
+        if (id) {
+          redis.hdelAsync(hash, id);
+        }
         resolve(fromBackend.data);
         //sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
       } else {
@@ -212,18 +220,27 @@ exports.update = function (resource, id, attrs, options) {
 exports.destroy = function (resource, id, options) {
 
   return new Promise(function (resolve, reject) {
-    let url = config.apiV4 (resource) + '/' + id;
+
+    if (!id) {
+      return reject ('id is required');
+    }
+
+    let hash = config.apiV4 (resource);
+    let url = hash + '/' + id;
     let opts = {
       url: url,
       method: 'DELETE',
       headers: _.pick(options.headers, config.headers),
       qs: options.qs
     };
+
     makeRequest(opts, () => {
       sockets.emitEvent('destroy', resource, options.sourceSocketId)({
         id: id
       });
+      redis.hdelAsync(hash, id);
       resolve();
     }, reject);
+
   });
 };
