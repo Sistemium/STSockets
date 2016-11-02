@@ -95,7 +95,7 @@ function onConnect(socket) {
 
     ack((new Date()).toISOString());
 
-    console.info('info:', JSON.stringify(data, null, 2));
+    console.info('info:', 'userId:', socket.userId, 'deviceUUID:', socket.deviceUUID, 'data:', JSON.stringify(data));
   });
 
 }
