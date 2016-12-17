@@ -9,12 +9,20 @@ const eventEmitter = new events.EventEmitter();
 const sockets = [];
 import {agentBuild, agentName} from '../../components/util';
 const jsData = require('../jsData/jsData.socket');
-const jsDataSubscriptions = [];
 
-const commands = {
+/*
+ Private Data
+ */
+
+const jsDataSubscriptions = [];
+const needSyncData = {};
+
+const commandsData = {
+
   fullSync: {
     STMSyncer: 'fullSync'
   },
+
   find: (resource, id) => {
     return {
       STMSocketController: {
@@ -26,10 +34,12 @@ const commands = {
       }
     }
   }
+
 };
 
-const needSyncData = {};
-
+/*
+ Init
+ */
 
 subscribeFullSyncJsData('remoteCommands-' + uuid.v4(), [
   'dev/PickingOrder', 'bs/PickingOrder',
@@ -47,7 +57,6 @@ subscribeJsData(sales, [
 eventEmitter.on('remoteCommands', function (params) {
   emitToDevice(params.deviceUUID, params.commands);
 });
-
 
 /*
  Public
@@ -90,9 +99,8 @@ function list() {
   });
 }
 
-
 /*
- Private
+ Private Functions
  */
 
 function syncPickers(org) {
@@ -100,7 +108,7 @@ function syncPickers(org) {
   _.each(sockets, function (socket) {
 
     if (socket.org === org && _.get(socket, 'roles.picker')) {
-      socket.emit('remoteCommands', commands.fullSync);
+      socket.emit('remoteCommands', commandsData.fullSync);
       debug('syncPickers', socket.deviceUUID);
     }
 
