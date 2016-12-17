@@ -1,9 +1,9 @@
 'use strict';
 
-var chai = require('chai');
-var should = chai.should();
-var app = require('../../app');
-var request = require('supertest');
+const chai = require('chai');
+const should = chai.should();
+const app = require('../../app');
+const request = require('supertest');
 
 describe('GET /api/statuss', function() {
 

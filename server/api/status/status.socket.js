@@ -1,11 +1,7 @@
-/**
- * Write to dynamodb on status change
- */
-
-
 'use strict';
-var Status = require('./status.model');
-var uuid = require('node-uuid');
+
+const Status = require('./status.model');
+const uuid = require('node-uuid');
 
 exports.register = function(socket) {
 
@@ -14,13 +10,13 @@ exports.register = function(socket) {
     socket.lastStatus = status;
     socket.touch();
 
-    var xid = uuid.v4();
-    var ack = (typeof clientAck === 'function') ? clientAck : function () {};
+    let xid = uuid.v4();
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
     console.info ('status:change userId:', socket.userId, status.url, socket.id);
 
     if (socket.accessToken) {
-      var rec = {
+      let rec = {
         token: socket.accessToken,
         date: Date.now(),
         userId: socket.userId,

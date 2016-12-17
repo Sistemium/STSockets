@@ -1,5 +1,6 @@
 'use strict';
-var Status = require('./status.model');
+
+const Status = require('./status.model');
 
 export function index(req, res) {
   Status.scan({}, {}, function (err, statuses) {
