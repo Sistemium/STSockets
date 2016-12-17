@@ -52,6 +52,7 @@ const sales = {
 
 subscribeJsData(sales, [
   'dr50/SaleOrder', 'dr50/SaleOrderPosition',
+  'dr50/RecordStatus'
 ]);
 
 eventEmitter.on('remoteCommands', function (params) {
