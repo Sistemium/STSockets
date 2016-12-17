@@ -10,6 +10,7 @@ const sockData = require('../components/sockData');
 const session = require('../api/session/session.controller');
 const jsDataSocket = require('../api/jsData/jsData.socket');
 
+import {agentName, agentBuild} from '../components/util';
 
 function onDisconnect(socket) {
 
@@ -46,7 +47,7 @@ function onConnect(socket) {
       socket.userAgent = data.bundleIdentifier + '/' + data.appVersion;
     }
 
-    console.info('authorization:', 'id:', socket.id, socket.userAgent, data.accessToken);
+    console.info('authorization:', socket.id, agentName(socket), agentBuild(socket), data.accessToken);
 
     if (socket.isAuthorized && socket.accessToken === data.accessToken) {
       return ack({

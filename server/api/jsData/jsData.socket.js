@@ -30,7 +30,7 @@ function emitEvent(method, resource, sourceSocketId) {
           debug('emitEvent:', event, 'id:', socket.id);
           socket.emit(event, {
             resource: resource,
-            data: _.pick(data, 'id')
+            data: _.pick(data, ['id', 'objectXid'])
           });
         }
 
@@ -112,6 +112,7 @@ function register(socket) {
   socket.on('jsData', function (data, callback) {
 
     data.options = data.options || {};
+
     _.defaultsDeep(data.options, {
       headers: {
         authorization: socket.accessToken,

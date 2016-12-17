@@ -159,9 +159,11 @@ exports.find = function (resource, id, options) {
 };
 
 function createOrUpdate(method, options) {
+
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
+
     let url = config.apiV4(options.resource);
     let hash = url;
     url += options.id ? '/' + options.id : '';
@@ -178,11 +180,25 @@ function createOrUpdate(method, options) {
 
     makeRequest(opts, (fromBackend) => {
       if (fromBackend && fromBackend.data) {
+
         fromBackend.uts = Date.now();
-        //debug('fromBackend', fromBackend);
+
         if (id) {
           redis.hdelAsync(hash, id);
         }
+
+        let objectXid = fromBackend.data.objectXid;
+        let name = fromBackend.data.name;
+
+        debug('objectXid', objectXid, name, options.resource);
+
+        if (objectXid && /.*\/RecordStatus$/i.test(options.resource)) {
+          let org = options.resource.match(/[^\/]+\//)[0]||'';
+          sockets.emitEvent('destroy', org + name, options.sourceSocketId)({
+            id: objectXid
+          });
+        }
+
         resolve(fromBackend.data);
         //sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
       } else {

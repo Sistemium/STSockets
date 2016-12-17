@@ -84,7 +84,7 @@ function emitToDevice(deviceUUID, commands) {
 
 function register(socket) {
   sockets.push(socket);
-  console.info('remoteCommands register deviceUUID:', socket.deviceUUID);
+  console.info('remoteCommands register deviceUUID:', socket.deviceUUID, agentName(socket), agentBuild(socket));
 
   socket.on('disconnect', function () {
     unRegister(socket);
@@ -144,6 +144,7 @@ function receiveEmit(event, data) {
 
 
 function propagateToSisSales(event, data) {
+
   debug('propagateToSisSales', event, data);
 
   let resource = _.get(data, 'resource');
@@ -157,6 +158,8 @@ function propagateToSisSales(event, data) {
   if (!org) return;
 
   _.each(sockets, socket => {
+
+    debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
 
     if (agentBuild(socket) >= 231 && agentName(socket) === 'iSisSales' && socket.org === org) {
       socket.emit('remoteCommands', commandsData.find(resource, id));

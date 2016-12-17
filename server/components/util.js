@@ -13,10 +13,9 @@ function agentBuild(req) {
 
 function agentName(req) {
 
-  let match = userAgent(req).match(/^[^/]*\/([^ ]+)/);
+  let match = userAgent(req).match(/^[^/]*/);
 
-  return _.get(req, 'query.agentName')
-    || match[0]
+  return match[0]
     || null;
 }
 
