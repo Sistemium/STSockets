@@ -7,6 +7,7 @@ const debug = require('debug')('sts:remoteCommands:socket');
 
 const eventEmitter = new events.EventEmitter();
 const sockets = [];
+import {agentBuild, agentName} from '../../components/util';
 const jsData = require('../jsData/jsData.socket');
 const jsDataSubscriptions = [];
 
@@ -148,9 +149,8 @@ function propagateToSisSales(event, data) {
 
   _.each(sockets, socket => {
 
-    // TODO: check user-agent and build version
-    if (socket.org === org && _.get(socket, 'roles.salesman') || _.get(socket, 'roles.supervisor')) {
-      socket.emit('remoteCommands', commands.find(resource, id));
+    if (agentBuild(socket) >= 231 && agentName(socket) === 'iSisSales' && socket.org === org) {
+      socket.emit('remoteCommands', commandsData.find(resource, id));
       debug('propagateToSisSales:device', socket.deviceUUID, `${resource}/${id}`);
     }
 
