@@ -1,16 +1,17 @@
 'use strict';
-var events = require('events');
-var ee = new events.EventEmitter();
-var _ = require('lodash');
-var debug = require ('debug') ('sts:session.controller');
 
-var sockData = require('../../components/sockData');
-var statusSocket = require('../../api/status/status.socket');
+const events = require('events');
+const _ = require('lodash');
+const debug = require ('debug') ('sts:session.controller');
 
-var sockets = [];
+const sockData = require('../../components/sockData');
+const statusSocket = require('../../api/status/status.socket');
 
-var socketData = function (socket) {
-  var di = socket.deviceInfo && {
+const ee = new events.EventEmitter();
+const sockets = [];
+
+function socketData(socket) {
+  let di = socket.deviceInfo && {
     deviceUUID: socket.deviceInfo.deviceUUID,
       deviceName: socket.deviceInfo.deviceName,
       devicePlatform: socket.deviceInfo.devicePlatform,
@@ -28,21 +29,21 @@ var socketData = function (socket) {
     ts: socket.ts,
     deviceInfo: di
   };
-};
+}
 
-var unRegister = function(socket) {
-  var idx = sockets.indexOf(socket);
+function unRegister(socket) {
+  let idx = sockets.indexOf(socket);
   if (idx>-1) {
     sockets.splice(idx,1);
   }
   socket.destroyed = true;
   ee.emit ('session:state',socket);
-};
+}
 
-var touchFn = function () {
+function touchFn() {
   this.ts = new Date();
   ee.emit('session:state',this);
-};
+}
 
 ee.on('session:state',function(changedSocket){
 
@@ -124,9 +125,9 @@ exports.register = function(socket) {
 
 exports.list = function (req, res) {
 
-  var selfOrg = _.get(req.auth,'account.org');
+  let selfOrg = _.get(req.auth,'account.org');
 
-  var data = _.filter(sockets,function (socket){
+  let data = _.filter(sockets,function (socket){
     return _.get(socket,'account.org') === selfOrg;
   }).map(function (socket){
     return socketData (socket);
