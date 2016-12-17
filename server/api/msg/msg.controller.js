@@ -7,33 +7,33 @@ const config = require('../../config/environment');
 const socket = require('../jsData/jsData.socket');
 const async = require('async');
 
-function processObject (msg) {
-  return redis.hdelAsync (config.apiV4(msg.resource), msg.resourceId)
+function processObject(msg) {
+  return redis.hdelAsync(config.apiV4(msg.resource), msg.resourceId)
     .then((res) => {
-      debug ('hdelAsync', config.apiV4(msg.resource), msg.resourceId, res);
+      debug('hdelAsync', config.apiV4(msg.resource), msg.resourceId, res);
       return res;
     });
 }
 
-exports.create = function (req,res,next) {
+exports.create = function (req, res, next) {
 
   let msg = req.body;
 
   _.assign(msg, {
     resource: req.params.pool + '/' + req.params.resource
   });
-  _.assign (msg,req.query);
+  _.assign(msg, req.query);
 
   processObject(msg)
-    .then(()=>{
+    .then(() => {
       res.sendStatus(201);
-      socket.emitEvent ('update', msg.resource) ({id: msg.resourceId});
+      socket.emitEvent('update', msg.resource)({id: msg.resourceId});
     })
     .catch(next);
 
 };
 
-exports.post = function (req,res,next) {
+exports.post = function (req, res, next) {
 
   let data = req.body || req.query || [];
 
@@ -43,7 +43,7 @@ exports.post = function (req,res,next) {
 
   //debug ('post', data);
 
-  async.eachSeries(data, (msg,done) => {
+  async.eachSeries(data, (msg, done) => {
     processObject(msg)
       .then((res) => {
         done();
@@ -52,27 +52,27 @@ exports.post = function (req,res,next) {
       .catch(done);
   }, (err) => {
     if (err) {
-      return next (err);
+      return next(err);
     }
     res.sendStatus(201);
-    _.each (data, (msg) => {
-      socket.emitEvent ('update', msg.resource) ({id: msg.resourceId});
+    _.each(data, (msg) => {
+      socket.emitEvent('update', msg.resource)({id: msg.resourceId});
     })
   });
 
 };
 
-exports.delete = function (req,res) {
+exports.delete = function (req, res) {
 
   let hash = config.apiV4(req.params.pool + '/' + req.params.resource);
 
-  redis.delAsync (hash)
+  redis.delAsync(hash)
     .then((res) => {
-      debug ('delAsync:success', hash, res);
+      debug('delAsync:success', hash, res);
       return res;
     })
-    .catch((res)=>{
-      debug ('delAsync:error', hash, res);
+    .catch((res) => {
+      debug('delAsync:error', hash, res);
     });
 
   res.sendStatus(200);

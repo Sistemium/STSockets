@@ -8,11 +8,11 @@ const _ = require('lodash');
 module.exports = router;
 
 
-function router (data, callback) {
+function router(data, callback) {
 
   let success = handleSuccess(callback, data.method, data.resource, data.id || data.params);
   let failure = handleError(callback, data.method, data.resource, data.id);
-  let offset = _.get(data,'options.offset');
+  let offset = _.get(data, 'options.offset');
 
   let params = data.params || {};
 
@@ -20,7 +20,7 @@ function router (data, callback) {
     params['x-offset:'] = offset;
   }
 
-  let pageSize = _.get(data,'options.pageSize');
+  let pageSize = _.get(data, 'options.pageSize');
 
   if (pageSize) {
     params['x-page-size:'] = pageSize;
@@ -28,49 +28,43 @@ function router (data, callback) {
 
   switch (data.method) {
 
-    case 'findAll' :
-    {
+    case 'findAll' : {
       jsDataModel.findAll(data.resource, params, data.options)
         .then(handleFindAllSuccess(callback, data.method, data.resource, data.id || data.params))
         .catch(failure)
       ;
       break;
     }
-    case 'find':
-    {
+    case 'find': {
       jsDataModel.find(data.resource, data.id, data.options)
         .then(success)
         .catch(failure)
       ;
       break;
     }
-    case 'create':
-    {
+    case 'create': {
       jsDataModel.create(data.resource, data.attrs, data.options)
         .then(success)
         .catch(failure)
       ;
       break;
     }
-    case 'update':
-    {
+    case 'update': {
       jsDataModel.update(data.resource, data.id, data.attrs, data.options)
         .then(success)
         .catch(failure)
       ;
       break;
     }
-    case 'destroy':
-    {
+    case 'destroy': {
       jsDataModel.destroy(data.resource, data.id, data.options)
         .then(success)
         .catch(failure)
       ;
       break;
     }
-    default:
-    {
-      return failure (`Unsupported method '${data.method}'`);
+    default: {
+      return failure(`Unsupported method '${data.method}'`);
     }
   }
 
@@ -84,7 +78,7 @@ function handleSuccess(callback, method, resource, params) {
       resource: resource,
       method: method
     };
-    console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
+    console.info('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
     callback(res);
     return reply;
   }
@@ -102,7 +96,7 @@ function handleFindAllSuccess(callback, method, resource, params) {
     if (offset) {
       res.offset = offset;
     }
-    console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
+    console.info('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
     callback(res);
     return reply;
   }

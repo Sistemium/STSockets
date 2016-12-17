@@ -24,7 +24,7 @@ exports.findAll = function (resource, params, options) {
   return new Promise(function (resolve, reject) {
     let opts = {
       qs: params,
-      url: config.apiV4 (resource),
+      url: config.apiV4(resource),
       method: 'GET',
       headers: headers
     };
@@ -43,7 +43,7 @@ exports.find = function (resource, id, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let hash = config.apiV4 (resource);
+    let hash = config.apiV4(resource);
     let opts = {
       url: hash + '/' + id,
       method: 'GET',
@@ -52,7 +52,7 @@ exports.find = function (resource, id, options) {
     let expireRedisAfter = config.redis.expireAfter;
 
     if (!headers.authorization) {
-      reject (
+      reject(
         // 'Authorization required'
         401
       );
@@ -69,7 +69,7 @@ exports.find = function (resource, id, options) {
     let hashId = hash + '#' + id;
     let minUts = Date.now() - expireRedisAfter;
 
-    function getFromBackend () {
+    function getFromBackend() {
 
       // TODO: check if possible to use pending by unauthorized hash
       let authorizedHashId = `${authorizedHash}#${id}`;
@@ -114,10 +114,10 @@ exports.find = function (resource, id, options) {
         findRequests.set(authorizedHashId, pending);
         debug('find:makeRequest', opts);
 
-        pending.then(()=> {
+        pending.then(() => {
           findRequests.del(authorizedHashId);
           //debug('delete:pending:then');
-        }, ()=> {
+        }, () => {
           findRequests.del(authorizedHashId);
           //debug('delete:pending:catch');
         });
@@ -128,7 +128,7 @@ exports.find = function (resource, id, options) {
 
     }
 
-    function gotFromRedisOrBackend (inRedis) {
+    function gotFromRedisOrBackend(inRedis) {
       if (inRedis && inRedis.data && inRedis.uts > minUts) {
         debug('find:redis', `${hashId} (${inRedis.uts})`);
         resolve(inRedis.data);
@@ -142,7 +142,7 @@ exports.find = function (resource, id, options) {
       if (authData && authData.uts > expireRedisAfter) {
         return redis.hgetAsync(hash, id)
           .then(gotFromRedisOrBackend)
-          .catch((err)=> {
+          .catch((err) => {
             console.error('jsData:find:redis:error', err);
             debug('find:makeRequest', opts);
             makeRequest(opts, (fromBackend) => {
@@ -150,7 +150,7 @@ exports.find = function (resource, id, options) {
             }, reject);
           });
       } else {
-        return getFromBackend ();
+        return getFromBackend();
       }
 
     });
@@ -162,7 +162,7 @@ function createOrUpdate(method, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let url = config.apiV4 (options.resource);
+    let url = config.apiV4(options.resource);
     let hash = url;
     url += options.id ? '/' + options.id : '';
 
@@ -223,10 +223,10 @@ exports.destroy = function (resource, id, options) {
   return new Promise(function (resolve, reject) {
 
     if (!id) {
-      return reject ('id is required');
+      return reject('id is required');
     }
 
-    let hash = config.apiV4 (resource);
+    let hash = config.apiV4(resource);
     let url = hash + '/' + id;
     let opts = {
       url: url,

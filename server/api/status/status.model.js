@@ -1,7 +1,7 @@
 'use strict';
 
 const dynamoose = require('dynamoose'),
-   Schema = dynamoose.Schema;
+  Schema = dynamoose.Schema;
 
 const StatusSchema = new Schema({
   xid: {

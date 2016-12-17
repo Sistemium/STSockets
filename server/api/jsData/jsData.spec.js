@@ -10,7 +10,7 @@ describe('GET api/jsData', function () {
       .get('/api/jsData/pool/resource/1')
       .expect(200)
       .end(function (err, res) {
-        if(err) {
+        if (err) {
           done(err);
         }
       });

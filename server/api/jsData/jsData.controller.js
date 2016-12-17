@@ -97,23 +97,23 @@ exports.destroy = function (req, res, next) {
 
 };
 
-function handleResponse (response) {
+function handleResponse(response) {
   return (data) => {
     response.json(data);
   };
 }
 
-function handleFindAllResponse (response) {
+function handleFindAllResponse(response) {
   return (res) => {
     let offset = res && res.xOffset;
     if (offset) {
-      response.set('X-Offset',offset);
+      response.set('X-Offset', offset);
     }
     response.json(res.data);
   };
 }
 
-function handleError (response, next) {
+function handleError(response, next) {
   return errObj => {
 
     let err = errObj && errObj.status || errObj;

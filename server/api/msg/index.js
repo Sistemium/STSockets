@@ -5,7 +5,7 @@ const router = express.Router();
 const controller = require('./msg.controller');
 const debug = require('debug')('sts:msg');
 
-debug ('index');
+debug('index');
 // router.get('/:pool/:resource', controller.index);
 // router.get('/:pool/:resource/:id', controller.show);
 router.post('/', controller.post);

@@ -2,8 +2,8 @@
 
 const events = require('events');
 const _ = require('lodash');
-const uuid = require ('node-uuid');
-const debug = require ('debug') ('sts:remoteCommands:socket');
+const uuid = require('node-uuid');
+const debug = require('debug')('sts:remoteCommands:socket');
 
 const eventEmitter = new events.EventEmitter();
 const sockets = [];
@@ -19,10 +19,10 @@ const commands = {
 const needSyncData = {};
 
 
-subscribeJsData('remoteCommands-'+uuid.v4(),['dev/PickingOrder','bs/PickingOrder']);
+subscribeJsData('remoteCommands-' + uuid.v4(), ['dev/PickingOrder', 'bs/PickingOrder']);
 
 eventEmitter.on('remoteCommands', function (params) {
-  emitToDevice (params.deviceUUID, params.commands);
+  emitToDevice(params.deviceUUID, params.commands);
 });
 
 exports.register = register;
@@ -30,44 +30,44 @@ exports.pushCommand = emitToDevice;
 exports.list = list;
 
 
-function syncPickers (org) {
+function syncPickers(org) {
 
-  _.each (sockets, function (socket) {
+  _.each(sockets, function (socket) {
 
-    if (socket.org === org && _.get(socket,'roles.picker')) {
-      socket.emit ('remoteCommands', commands.fullSync);
-      debug ('syncPickers', socket.deviceUUID);
+    if (socket.org === org && _.get(socket, 'roles.picker')) {
+      socket.emit('remoteCommands', commands.fullSync);
+      debug('syncPickers', socket.deviceUUID);
     }
 
   });
 
 }
 
-function needSync (org) {
+function needSync(org) {
 
-  if (! needSyncData [org]) {
+  if (!needSyncData [org]) {
     needSyncData [org] = true;
     syncPickers(org);
-    setTimeout(function (){
+    setTimeout(function () {
       needSyncData [org] = false;
-    },1000);
+    }, 1000);
   }
 
 }
 
 
-function subscribeJsData (id, filter) {
+function subscribeJsData(id, filter) {
 
-  jsData.subscribe ({
+  jsData.subscribe({
     id: id,
-    emit: function (event,data){
-      debug ('subscribeJsData', event, data);
-      let matches = (_.get(data,'resource')||'').match(/^[^\/]*/);
+    emit: function (event, data) {
+      debug('subscribeJsData', event, data);
+      let matches = (_.get(data, 'resource') || '').match(/^[^\/]*/);
       if (matches.length) {
-        needSync (matches[0]);
+        needSync(matches[0]);
       }
     }
-  }) (filter,function(data){
+  })(filter, function (data) {
 
     jsDataSubscriptions.push({id: data, filter: filter});
 
@@ -75,11 +75,11 @@ function subscribeJsData (id, filter) {
 }
 
 
-function emitToDevice (deviceUUID, commands) {
+function emitToDevice(deviceUUID, commands) {
 
-  let matchingSockets = _.filter(sockets,{deviceUUID:deviceUUID});
+  let matchingSockets = _.filter(sockets, {deviceUUID: deviceUUID});
 
-  _.each(matchingSockets,function (socket){
+  _.each(matchingSockets, function (socket) {
     socket.emit('remoteCommands', commands);
     console.info('remoteCommands deviceUUID:', deviceUUID, 'commands:', commands);
   });
@@ -89,28 +89,28 @@ function emitToDevice (deviceUUID, commands) {
 }
 
 
-function unRegister (socket) {
+function unRegister(socket) {
   let idx = sockets.indexOf(socket);
-  if (idx>-1) {
-    sockets.splice(idx,1);
+  if (idx > -1) {
+    sockets.splice(idx, 1);
   }
-  _.each (socket.jsDataSubscriptions, function(subscription) {
-    jsData.unSubscribe(socket) (subscription.id);
+  _.each(socket.jsDataSubscriptions, function (subscription) {
+    jsData.unSubscribe(socket)(subscription.id);
   });
 }
 
 
-function register (socket) {
+function register(socket) {
   sockets.push(socket);
   console.info('remoteCommands register deviceUUID:', socket.deviceUUID);
 
-  socket.on('disconnect',function(){
+  socket.on('disconnect', function () {
     unRegister(socket);
   });
 }
 
-function list () {
-  return _.map(sockets,function (socket) {
+function list() {
+  return _.map(sockets, function (socket) {
     return {
       id: socket.id,
       deviceUUID: socket.deviceUUID

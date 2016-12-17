@@ -3,7 +3,7 @@
 const Status = require('./status.model');
 const uuid = require('node-uuid');
 
-exports.register = function(socket) {
+exports.register = function (socket) {
 
   socket.on('status:change', function (status, clientAck) {
 
@@ -11,9 +11,10 @@ exports.register = function(socket) {
     socket.touch();
 
     let xid = uuid.v4();
-    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {
+      };
 
-    console.info ('status:change userId:', socket.userId, status.url, socket.id);
+    console.info('status:change userId:', socket.userId, status.url, socket.id);
 
     if (socket.accessToken) {
       let rec = {
@@ -34,7 +35,7 @@ exports.register = function(socket) {
 
     } else {
       ack({error: 'not authorized'});
-      console.error ('not authorized');
+      console.error('not authorized');
     }
 
   });

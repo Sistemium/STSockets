@@ -2,12 +2,12 @@
 
 const socket = require('./remoteCommands.socket');
 
-exports.pushCommand = function(req, res) {
+exports.pushCommand = function (req, res) {
 
   let deviceUUID = req.params.deviceUUID;
 
   if (deviceUUID) {
-    let l = socket.pushCommand(deviceUUID,req.body);
+    let l = socket.pushCommand(deviceUUID, req.body);
     if (l) {
       return res.json({message: 'OK', count: l});
     } else {
@@ -20,7 +20,7 @@ exports.pushCommand = function(req, res) {
 
 };
 
-exports.list = function(req, res) {
+exports.list = function (req, res) {
 
   return res.json(socket.list());
 
