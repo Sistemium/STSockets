@@ -1,9 +1,9 @@
 'use strict';
 
-var express = require('express');
-var router = express.Router();
-var controller = require('./msg.controller');
-var debug = require('debug')('sts:msg');
+const express = require('express');
+const router = express.Router();
+const controller = require('./msg.controller');
+const debug = require('debug')('sts:msg');
 
 debug ('index');
 // router.get('/:pool/:resource', controller.index);

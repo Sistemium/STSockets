@@ -1,11 +1,11 @@
 'use strict';
 
-let _ = require('lodash');
-let debug = require('debug')('sts:msg');
-let redis = require('../../config/redis');
-let config = require('../../config/environment');
-let socket = require('../jsData/jsData.socket');
-let async = require('async');
+const _ = require('lodash');
+const debug = require('debug')('sts:msg');
+const redis = require('../../config/redis');
+const config = require('../../config/environment');
+const socket = require('../jsData/jsData.socket');
+const async = require('async');
 
 function processObject (msg) {
   return redis.hdelAsync (config.apiV4(msg.resource), msg.resourceId)
@@ -17,13 +17,13 @@ function processObject (msg) {
 
 exports.create = function (req,res,next) {
 
-  var msg = req.body;
+  let msg = req.body;
 
   _.assign(msg, {
     resource: req.params.pool + '/' + req.params.resource
   });
   _.assign (msg,req.query);
-  
+
   processObject(msg)
     .then(()=>{
       res.sendStatus(201);
@@ -35,7 +35,7 @@ exports.create = function (req,res,next) {
 
 exports.post = function (req,res,next) {
 
-  var data = req.body || req.query || [];
+  let data = req.body || req.query || [];
 
   if (!_.isArray(data)) {
     data = [data];
@@ -62,9 +62,9 @@ exports.post = function (req,res,next) {
 
 };
 
-exports.delete = function (req,res,next) {
+exports.delete = function (req,res) {
 
-  var hash = config.apiV4(req.params.pool + '/' + req.params.resource);
+  let hash = config.apiV4(req.params.pool + '/' + req.params.resource);
 
   redis.delAsync (hash)
     .then((res) => {
