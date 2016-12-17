@@ -1,9 +1,14 @@
 'use strict';
-let request = require('request');
-let debug = require('debug')('sts:makeRequest');
-let _ = require('lodash');
 
-module.exports = function makeRequest(options, resolve, reject) {
+const request = require('request');
+const debug = require('debug')('sts:makeRequest');
+const _ = require('lodash');
+
+
+module.exports = makeRequest;
+
+
+function makeRequest(options, resolve, reject) {
 
   let result;
   request(options, function (error, response, body) {
@@ -51,4 +56,4 @@ module.exports = function makeRequest(options, resolve, reject) {
     });
   });
 
-};
+}

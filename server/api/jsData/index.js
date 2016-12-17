@@ -1,9 +1,9 @@
 'use strict';
 
-var express = require('express');
-var controller = require('./jsData.controller');
+const express = require('express');
+const controller = require('./jsData.controller');
 
-var router = express.Router();
+const router = express.Router();
 
 router.get('/:pool/:resource', controller.index);
 router.get('/:pool/:resource/:id', controller.show);

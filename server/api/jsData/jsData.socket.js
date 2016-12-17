@@ -1,11 +1,18 @@
 'use strict';
 
-let debug = require('debug')('sts:jsData:socket');
-let _ = require('lodash');
-let uuid = require('node-uuid');
-let router = require ('./jsData.socket.router');
+const debug = require('debug')('sts:jsData:socket');
+const _ = require('lodash');
+const uuid = require('node-uuid');
+const router = require ('./jsData.socket.router');
 
-var subscriptions = [];
+const subscriptions = [];
+
+
+exports.emitEvent = emitEvent;
+exports.subscribe = subscribe;
+exports.unSubscribe = unSubscribe;
+exports.register = register;
+
 
 function emitEvent (method, resource, sourceSocketId) {
 
@@ -34,8 +41,6 @@ function emitEvent (method, resource, sourceSocketId) {
 
 }
 
-exports.emitEvent = emitEvent;
-
 function unRegister (socket) {
 
   let toUnsubscribe = _.filter(subscriptions, {socket: socket});
@@ -51,7 +56,7 @@ function unRegister (socket) {
 function subscribe (socket) {
 
   return function (filter, callback){
-    var subscription = {
+    let subscription = {
       id: uuid.v4(),
       socket: socket,
       filter: filter
@@ -71,8 +76,8 @@ function subscribe (socket) {
 function unSubscribe (socket) {
   return function (id, callback) {
 
-    var idx = _.findIndex (subscriptions, {id: id});
-    var subscription;
+    let idx = _.findIndex (subscriptions, {id: id});
+    let subscription;
 
     if (idx>=0) {
       subscription = subscriptions [idx];
@@ -89,10 +94,8 @@ function unSubscribe (socket) {
   };
 }
 
-exports.subscribe = subscribe;
-exports.unSubscribe = unSubscribe;
 
-exports.register = function (socket) {
+function register(socket) {
 
   socket.on('jsData:subscribe', subscribe(socket));
 
@@ -127,4 +130,4 @@ exports.register = function (socket) {
 
   });
 
-};
+}

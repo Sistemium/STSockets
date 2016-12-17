@@ -1,20 +1,21 @@
 'use strict';
 
-let _ = require('lodash');
-let debug = require('debug')('sts:jsData.model');
-let config = require('../../config/environment');
-let makeRequest = require('./makeRequest');
-let redis = require('../../config/redis');
-let sockets = require('./jsData.socket');
+const _ = require('lodash');
+const LRU = require('lru-cache');
+const debug = require('debug')('sts:jsData.model');
+
+const config = require('../../config/environment');
+const makeRequest = require('./makeRequest');
+const redis = require('../../config/redis');
+const sockets = require('./jsData.socket');
 
 
-let LRU = require('lru-cache');
-let lruOptions = {
+const lruOptions = {
   max: process.env.JSD_LRU_MAX || 100,
   maxAge: process.env.JSD_LRU_MAX_AGE || (1000 * 30)
 };
 
-let findRequests = LRU(lruOptions);
+const findRequests = LRU(lruOptions);
 
 
 exports.findAll = function (resource, params, options) {

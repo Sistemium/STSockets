@@ -1,7 +1,7 @@
 'use strict';
-var request = require('supertest');
-var chai = require('chai');
-var app = require('../../app');
+let request = require('supertest');
+let chai = require('chai');
+let app = require('../../app');
 
 describe('GET api/jsData', function () {
 

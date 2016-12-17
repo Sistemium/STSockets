@@ -1,71 +1,26 @@
 'use strict';
 
-let jsDataModel = require('./jsData.model');
-let debug = require('debug')('sts:jsData:socket:router');
-let _ = require('lodash');
+const jsDataModel = require('./jsData.model');
+const debug = require('debug')('sts:jsData:socket:router');
+const _ = require('lodash');
 
-function handleSuccess(callback, method, resource, params) {
-  return reply => {
-    var res = {
-      data: reply || [],
-      resource: resource,
-      method: method
-    };
-    console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
-    callback(res);
-    return reply;
-  }
-}
 
-function handleFindAllSuccess(callback, method, resource, params) {
-  return reply => {
-    let offset = reply && reply.xOffset;
-    var res = {
-      data: reply.data || [],
-      offset: offset,
-      resource: resource,
-      method: method
-    };
-    if (offset) {
-      res.offset = offset;
-    }
-    console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
-    callback(res);
-    return reply;
-  }
-}
-
-function handleError(callback, method, resource, id) {
-  return errObj => {
-    let err = errObj && errObj.status || errObj;
-    debug('error occurred', err);
-    var res = {
-      error: err,
-      text: errObj.text,
-      resource: resource,
-      method: method
-    };
-    if (id) {
-      res.id = id;
-    }
-    callback(res)
-  };
-}
+module.exports = router;
 
 
 function router (data, callback) {
 
-  var success = handleSuccess(callback, data.method, data.resource, data.id || data.params);
-  var failure = handleError(callback, data.method, data.resource, data.id);
-  var offset = _.get(data,'options.offset');
+  let success = handleSuccess(callback, data.method, data.resource, data.id || data.params);
+  let failure = handleError(callback, data.method, data.resource, data.id);
+  let offset = _.get(data,'options.offset');
 
-  var params = data.params || {};
+  let params = data.params || {};
 
   if (offset) {
     params['x-offset:'] = offset;
   }
 
-  var pageSize = _.get(data,'options.pageSize');
+  let pageSize = _.get(data,'options.pageSize');
 
   if (pageSize) {
     params['x-page-size:'] = pageSize;
@@ -121,4 +76,52 @@ function router (data, callback) {
 
 }
 
-module.exports = router;
+
+function handleSuccess(callback, method, resource, params) {
+  return reply => {
+    let res = {
+      data: reply || [],
+      resource: resource,
+      method: method
+    };
+    console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
+    callback(res);
+    return reply;
+  }
+}
+
+function handleFindAllSuccess(callback, method, resource, params) {
+  return reply => {
+    let offset = reply && reply.xOffset;
+    let res = {
+      data: reply.data || [],
+      offset: offset,
+      resource: resource,
+      method: method
+    };
+    if (offset) {
+      res.offset = offset;
+    }
+    console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
+    callback(res);
+    return reply;
+  }
+}
+
+function handleError(callback, method, resource, id) {
+  return errObj => {
+    let err = errObj && errObj.status || errObj;
+    debug('error occurred', err);
+    let res = {
+      error: err,
+      text: errObj.text,
+      resource: resource,
+      method: method
+    };
+    if (id) {
+      res.id = id;
+    }
+    callback(res)
+  };
+}
+
