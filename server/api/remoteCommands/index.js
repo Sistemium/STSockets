@@ -1,10 +1,10 @@
 'use strict';
 
-var express = require('express');
-var controller = require('./remoteCommands.controller');
+const express = require('express');
+const controller = require('./remoteCommands.controller');
 
-var router = express.Router();
-var auth = require ('../../components/auth');
+const router = express.Router();
+const auth = require ('../../components/auth');
 
 router.get('/', auth ('admin'), controller.list);
 router.post('/', controller.pushCommand);

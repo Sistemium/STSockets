@@ -1,13 +1,13 @@
 'use strict';
 
-var socket = require('./remoteCommands.socket');
+const socket = require('./remoteCommands.socket');
 
 exports.pushCommand = function(req, res) {
 
-  var deviceUUID = req.params.deviceUUID;
+  let deviceUUID = req.params.deviceUUID;
 
   if (deviceUUID) {
-    var l = socket.pushCommand(deviceUUID,req.body);
+    let l = socket.pushCommand(deviceUUID,req.body);
     if (l) {
       return res.json({message: 'OK', count: l});
     } else {

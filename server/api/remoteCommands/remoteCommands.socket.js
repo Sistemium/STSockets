@@ -1,20 +1,34 @@
 'use strict';
 
-var events = require('events');
-var eventEmitter = new events.EventEmitter();
-var _ = require('lodash');
-var debug = require ('debug') ('sts:remoteCommands:socket');
-var uuid = require ('node-uuid');
+const events = require('events');
+const _ = require('lodash');
+const uuid = require ('node-uuid');
+const debug = require ('debug') ('sts:remoteCommands:socket');
 
-var sockets = [];
-var jsData = require('../jsData/jsData.socket');
-var jsDataSubscriptions = [];
+const eventEmitter = new events.EventEmitter();
+const sockets = [];
+const jsData = require('../jsData/jsData.socket');
+const jsDataSubscriptions = [];
 
-var commands = {
+const commands = {
   fullSync: {
     STMSyncer: 'fullSync'
   }
 };
+
+const needSyncData = {};
+
+
+subscribeJsData('remoteCommands-'+uuid.v4(),['dev/PickingOrder','bs/PickingOrder']);
+
+eventEmitter.on('remoteCommands', function (params) {
+  emitToDevice (params.deviceUUID, params.commands);
+});
+
+exports.register = register;
+exports.pushCommand = emitToDevice;
+exports.list = list;
+
 
 function syncPickers (org) {
 
@@ -28,8 +42,6 @@ function syncPickers (org) {
   });
 
 }
-
-var needSyncData = {};
 
 function needSync (org) {
 
@@ -50,7 +62,7 @@ function subscribeJsData (id, filter) {
     id: id,
     emit: function (event,data){
       debug ('subscribeJsData', event, data);
-      var matches = (_.get(data,'resource')||'').match(/^[^\/]*/);
+      let matches = (_.get(data,'resource')||'').match(/^[^\/]*/);
       if (matches.length) {
         needSync (matches[0]);
       }
@@ -62,11 +74,10 @@ function subscribeJsData (id, filter) {
   });
 }
 
-subscribeJsData('remoteCommands-'+uuid.v4(),['dev/PickingOrder','bs/PickingOrder']);
 
 function emitToDevice (deviceUUID, commands) {
 
-  var matchingSockets = _.filter(sockets,{deviceUUID:deviceUUID});
+  let matchingSockets = _.filter(sockets,{deviceUUID:deviceUUID});
 
   _.each(matchingSockets,function (socket){
     socket.emit('remoteCommands', commands);
@@ -79,7 +90,7 @@ function emitToDevice (deviceUUID, commands) {
 
 
 function unRegister (socket) {
-  var idx = sockets.indexOf(socket);
+  let idx = sockets.indexOf(socket);
   if (idx>-1) {
     sockets.splice(idx,1);
   }
@@ -106,12 +117,3 @@ function list () {
     };
   });
 }
-
-eventEmitter.on('remoteCommands', function (params) {
-  emitToDevice (params.deviceUUID, params.commands);
-});
-
-
-exports.register = register;
-exports.pushCommand = emitToDevice;
-exports.list = list;
