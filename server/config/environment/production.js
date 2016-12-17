@@ -10,7 +10,7 @@ function requiredProcessEnv(name) {
 module.exports = {
 
   port: requiredProcessEnv('PORT'),
-  
+
   APIv4: requiredProcessEnv('APIv4'),
   APIv1: requiredProcessEnv('APIv1'),
   APIv3: requiredProcessEnv('APIv3')

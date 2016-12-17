@@ -1,15 +1,15 @@
 'use strict';
 
-var redis = require ('redis');
-var config = require ('./environment');
-var bluebird = require ('bluebird');
-var debug = require ('debug')('sts:redis');
+const redis = require ('redis');
+const config = require ('./environment');
+const bluebird = require ('bluebird');
+const debug = require ('debug')('sts:redis');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 
 console.log ('Redis config:', config.redis);
 
-var redisClient = redis.createClient(config.redis);
+const redisClient = redis.createClient(config.redis);
 
 redisClient.on('ready', function () {
   debug('Redis client connection is established.');

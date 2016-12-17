@@ -1,12 +1,12 @@
 'use strict';
 
-var path = require('path');
-var _ = require('lodash');
+const path = require('path');
+const _ = require('lodash');
 
 
 // All configurations will extend these options
 // ============================================
-var all = {
+const all = {
   env: process.env.NODE_ENV,
 
   // Root path of server
@@ -45,9 +45,9 @@ var all = {
       return false;
     }
 
-    var org = resource.match (/(^[^\/]*)\/(.*)/);
-    var key = 'APIv4';
-    var orgKey = key + (org ? '_' + org[1] : '');
+    let org = resource.match (/(^[^\/]*)\/(.*)/);
+    let key = 'APIv4';
+    let orgKey = key + (org ? '_' + org[1] : '');
 
     if (org && this[orgKey]) {
       return this[orgKey] + org [2];
@@ -73,7 +73,7 @@ _.each (process.env, function(val, key) {
 
 // Export the config object based on the NODE_ENV
 // ==============================================
-var config = _.merge(
+const config = _.merge(
   all,
   require('./' + process.env.NODE_ENV + '.js') || {});
 

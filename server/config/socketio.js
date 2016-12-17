@@ -4,11 +4,11 @@
 
 'use strict';
 
-var statusSocket = require('../api/status/status.socket');
-var remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
-var sockData = require('../components/sockData');
-var session = require('../api/session/session.controller');
-var jsDataSocket = require('../api/jsData/jsData.socket');
+const statusSocket = require('../api/status/status.socket');
+const remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
+const sockData = require('../components/sockData');
+const session = require('../api/session/session.controller');
+const jsDataSocket = require('../api/jsData/jsData.socket');
 
 
 function onDisconnect(socket) {
@@ -34,7 +34,7 @@ function onConnect(socket) {
 
   socket.on ('authorization', function (data,clientAck){
 
-    var ack = (typeof clientAck === 'function') ? clientAck : function () {};
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
     if (!data) {
       return ack({
@@ -91,7 +91,7 @@ function onConnect(socket) {
   });
 
   socket.on('info', function (data,clientAck) {
-    var ack = (typeof clientAck === 'function') ? clientAck : function () {};
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
     ack((new Date()).toISOString());
 
