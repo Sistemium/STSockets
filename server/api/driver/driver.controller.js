@@ -1,6 +1,6 @@
 'use strict';
 
-var socket = require('./driver.socket');
+const socket = require('./driver.socket');
 
 exports.driversRefresh = function(req, res) {
   socket.driversRefresh(req.body);
@@ -10,4 +10,4 @@ exports.driversRefresh = function(req, res) {
 exports.driverRefresh = function(req, res) {
   socket.driverRefresh(req.body);
   return res.json(200, {message: 'Socket has been synced'});
-}
+};

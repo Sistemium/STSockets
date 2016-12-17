@@ -1,8 +1,8 @@
 'use strict';
-var events = require('events');
-var eventEmitter = new events.EventEmitter();
+const events = require('events');
+const eventEmitter = new events.EventEmitter();
 
-var sockets = [];
+const sockets = [];
 
 eventEmitter.on('drivers:refresh', function (drivers) {
   sockets.every(function(socket){
@@ -16,12 +16,12 @@ eventEmitter.on('driver:refresh', function (driver) {
   });
 });
 
-var unRegister = function(socket) {
-  var idx = sockets.indexOf(socket);
+function unRegister(socket) {
+  let idx = sockets.indexOf(socket);
   if (idx>-1) {
     sockets.splice(idx,1);
   }
-};
+}
 
 exports.register = function(socket) {
   sockets.push(socket);
