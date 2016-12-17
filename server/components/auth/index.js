@@ -1,21 +1,22 @@
 'use strict';
 
-var config = require('../../config/environment');
-var request = require('request');
+const request = require('request');
+const _ = require('lodash');
 
-var tokens = {};
+const debug = require('debug')('sts:auth');
+const config = require('../../config/environment');
 
-var _ = require('lodash');
+const tokens = {};
 
-var log401 = function (url,token) {
-  console.error ('Not authorized token:', token, 'url:', url);
-};
 
-var debug = require ('debug') ('sts:auth');
+function log401(url, token) {
+  console.error('Not authorized token:', token, 'url:', url);
+}
 
-var getRoles = function (token, callback) {
 
-  var options = {
+function getRoles(token, callback) {
+
+  const options = {
     url: config.pha.roles,
     headers: {
       'Authorization': token
@@ -26,12 +27,12 @@ var getRoles = function (token, callback) {
 
     if (error) {
       console.error(error);
-      callback ();
+      callback();
     }
 
     if (response.statusCode === 200) {
 
-      var roles = JSON.parse(body);
+      const roles = JSON.parse(body);
       console.log('Authorized token:', token, 'account:', roles.account.name);
       callback(roles);
 
@@ -39,38 +40,50 @@ var getRoles = function (token, callback) {
 
       // TODO: catch 401
 
-      console.error ('Authorization error token:', token, 'status:', response.statusCode);
-      callback (false);
+      console.error('Authorization error token:', token, 'status:', response.statusCode);
+      callback(false);
 
     }
 
   });
 
-};
+}
 
 
 module.exports = function (needRolesStringOrArray) {
 
-  var needRoles = (typeof needRolesStringOrArray === 'string') ? [needRolesStringOrArray] : needRolesStringOrArray;
+  let needRoles = _.isString(needRolesStringOrArray) ? [needRolesStringOrArray] : needRolesStringOrArray;
 
   return function (req, res, next) {
 
-    if (req.method==='OPTIONS') {
+    if (req.method === 'OPTIONS') {
       return next();
     }
 
-    var token = req.headers.authorization;
+    let token = req.headers.authorization;
 
-    var onAuthorized = function (token) {
+    if (!token || tokens[token] === false) {
+      log401(req.url, token);
+      return res.status(401).end('Not authorized');
+    }
+
+    if (!tokens[token]) {
+      return getRoles(token, onRoles);
+    }
+
+    onAuthorized(tokens[token]);
+
+
+    function onAuthorized(token) {
 
       if (!token.roles) {
-        debug ('onAuthorized', 'no roles', token);
-        return res.status (401).end ('No auth data');
+        debug('onAuthorized', 'no roles', token);
+        return res.status(401).end('No auth data');
       }
 
-      var hasRole = !needRoles || _.reduce (needRoles,function(accumulator, role) {
-        return accumulator || !!token.roles[role];
-      },false);
+      let hasRole = !needRoles || _.reduce(needRoles, function (accumulator, role) {
+          return accumulator || !!token.roles[role];
+        }, false);
 
       if (hasRole) {
         req.auth = token;
@@ -78,34 +91,25 @@ module.exports = function (needRolesStringOrArray) {
       } else {
         res.status(401).end('Need roles: ' + JSON.stringify(needRoles, null, 2));
       }
-    };
 
-    var onRoles = function (auth) {
+    }
+
+
+    function onRoles(auth) {
 
       if (auth) {
         tokens[token] = auth;
-        return onAuthorized (auth);
+        return onAuthorized(auth);
       }
 
       if (auth === false) {
         tokens[token] = false;
       }
 
-      log401 (req.url, token);
+      log401(req.url, token);
       res.status(401).end('Not authorized')
 
-    };
-
-    if (!token || tokens[token] === false) {
-      log401 (req.url, token);
-      return res.status(401).end('Not authorized');
     }
-
-    if (!tokens[token]) {
-      return getRoles (token,onRoles);
-    }
-
-    onAuthorized (tokens[token]);
 
   };
 
