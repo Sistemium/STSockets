@@ -19,7 +19,9 @@ const commands = {
 const needSyncData = {};
 
 
-subscribeJsData('remoteCommands-' + uuid.v4(), ['dev/PickingOrder', 'bs/PickingOrder']);
+subscribeJsData('remoteCommands-' + uuid.v4(), [
+  'dev/PickingOrder', 'bs/PickingOrder',
+]);
 
 eventEmitter.on('remoteCommands', function (params) {
   emitToDevice(params.deviceUUID, params.commands);
