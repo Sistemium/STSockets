@@ -56,6 +56,7 @@ function unRegister(socket) {
 function subscribe(socket) {
 
   return function (filter, callback) {
+
     let subscription = {
       id: uuid.v4(),
       socket: socket,
@@ -66,9 +67,12 @@ function subscribe(socket) {
 
     subscriptions.push(subscription);
 
-    if (_.isFunction(callback)) {
-      callback({data: subscription.id});
-    }
+    let result = {data: subscription.id};
+
+    if (_.isFunction(callback)) return callback(result);
+
+    return result;
+
   };
 
 }
