@@ -33,6 +33,14 @@ const commandsData = {
         }
       }
     }
+  },
+
+  syncEntity: (resource) => {
+    return {
+      STMSyncer: {
+        receiveEntities: [resource]
+      }
+    }
   }
 
 };
@@ -162,8 +170,13 @@ function propagateToSisSales(event, data) {
     debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
 
     if (agentBuild(socket) >= 231 && agentName(socket) === 'iSisSales' && socket.org === org) {
-      socket.emit('remoteCommands', commandsData.find(resource, id));
-      debug('propagateToSisSales:device', socket.deviceUUID, `${resource}/${id}`);
+      if (id) {
+        socket.emit('remoteCommands', commandsData.find(resource, id));
+        debug('propagateToSisSales:device', socket.deviceUUID, `${resource}/${id}`);
+      } else {
+        socket.emit('remoteCommands', commandsData.syncEntity(resource));
+        debug('propagateToSisSales:device', socket.deviceUUID, `${resource}`);
+      }
     }
 
   });
