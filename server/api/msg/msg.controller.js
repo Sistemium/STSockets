@@ -8,6 +8,17 @@ const socket = require('../jsData/jsData.socket');
 const async = require('async');
 
 function processObject(msg) {
+
+  if (!msg.resourceId) {
+    let hash = config.apiV4(msg.resource);
+    return redis.delAsync(hash)
+      .then(res => {
+        debug('delAsync:success', hash, res);
+        return res;
+      })
+      .catch(res => debug('delAsync:error', hash, res));
+  }
+
   return redis.hdelAsync(config.apiV4(msg.resource), msg.resourceId)
     .then(res => {
       debug('hdelAsync', config.apiV4(msg.resource), msg.resourceId, res);
@@ -63,10 +74,16 @@ exports.post = function (req, res, next) {
     res.sendStatus(201);
 
     _.each(data, msg => {
-      socket.emitEvent('update', msg.resource)({
-        id: msg.resourceId,
-        ts: msg.resourceTs
-      });
+      if (msg.resourceId) {
+        socket.emitEvent('update', msg.resource)({
+          id: msg.resourceId,
+          ts: msg.resourceTs
+        });
+      } else {
+        socket.emitEvent('updateCollection', msg.resource)({
+          ts: msg.resourceTs
+        });
+      }
     });
 
   });
