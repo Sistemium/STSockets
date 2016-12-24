@@ -38,7 +38,7 @@ const commandsData = {
   syncEntity: (resource) => {
     return {
       STMSyncer: {
-        receiveEntities: [resource]
+        'receiveEntities:': [resource]
       }
     }
   }
@@ -60,7 +60,8 @@ const sales = {
 
 subscribeJsData(sales, [
   'dr50/SaleOrder', 'dr50/SaleOrderPosition',
-  'dr50/RecordStatus'
+  'dr50/RecordStatus',
+  'dr50/Stock'
 ]);
 
 eventEmitter.on('remoteCommands', function (params) {
@@ -165,6 +166,8 @@ function propagateToSisSales(event, data) {
 
   if (!org) return;
 
+  let resourceName = _.first(resource.match(/[^\/]*$/));
+
   _.each(sockets, socket => {
 
     debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
@@ -173,9 +176,9 @@ function propagateToSisSales(event, data) {
       if (id) {
         socket.emit('remoteCommands', commandsData.find(resource, id));
         debug('propagateToSisSales:device', socket.deviceUUID, `${resource}/${id}`);
-      } else {
-        socket.emit('remoteCommands', commandsData.syncEntity(resource));
-        debug('propagateToSisSales:device', socket.deviceUUID, `${resource}`);
+      } else if (resourceName) {
+        socket.emit('remoteCommands', commandsData.syncEntity(resourceName));
+        debug('propagateToSisSales:device', socket.deviceUUID, `${resourceName}`);
       }
     }
 

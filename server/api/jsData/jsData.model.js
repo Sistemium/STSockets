@@ -190,7 +190,7 @@ function createOrUpdate(method, options) {
         let objectXid = fromBackend.data.objectXid;
         let name = fromBackend.data.name;
 
-        debug('objectXid', objectXid, name, options.resource);
+        // debug('objectXid', objectXid, name, options.resource);
 
         if (objectXid && /.*\/RecordStatus$/i.test(options.resource)) {
           let org = options.resource.match(/[^\/]+\//)[0]||'';
