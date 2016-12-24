@@ -10,8 +10,8 @@ module.exports = router;
 
 function router(data, callback) {
 
-  let success = handleSuccess(callback, data.method, data.resource, data.id || data.params);
-  let failure = handleError(callback, data.method, data.resource, data.id);
+  let success = handleSuccess(callback, data.method, data.resource, data.id || data.params, data.context);
+  let failure = handleError(callback, data.method, data.resource, data.id, data.context);
   let offset = _.get(data, 'options.offset');
 
   let params = data.params || {};
@@ -30,7 +30,7 @@ function router(data, callback) {
 
     case 'findAll' : {
       jsDataModel.findAll(data.resource, params, data.options)
-        .then(handleFindAllSuccess(callback, data.method, data.resource, data.id || data.params))
+        .then(handleFindAllSuccess(callback, data.method, data.resource, data.id || data.params, data.context, pageSize))
         .catch(failure)
       ;
       break;
@@ -71,41 +71,48 @@ function router(data, callback) {
 }
 
 
-function handleSuccess(callback, method, resource, params) {
+function handleSuccess(callback, method, resource, params, context) {
   return reply => {
     let res = {
       data: reply || [],
       resource: resource,
       method: method
     };
-    console.info('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
+    if (context) {
+      res.context = context;
+    }
+    debug('handleSuccess', method, resource, params, res.data.id ? 1 : res.data.length, context);
     callback(res);
     return reply;
   }
 }
 
-function handleFindAllSuccess(callback, method, resource, params) {
+function handleFindAllSuccess(callback, method, resource, params, context, pageSize) {
   return reply => {
-    let offset = reply && reply.xOffset;
     let res = {
       data: reply.data || [],
-      offset: offset,
       resource: resource,
-      method: method
+      method: method, context
     };
+    let offset = reply && reply.xOffset;
     if (offset) {
       res.offset = offset;
     }
-    console.info('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
+    if (pageSize) {
+      res.pageSize = pageSize;
+    }
+    if (context) {
+      res.context = context;
+    }
+    debug('handleFindAllSuccess', method, resource, params, res.data.id ? 1 : res.data.length, context, pageSize);
     callback(res);
     return reply;
   }
 }
 
-function handleError(callback, method, resource, id) {
+function handleError(callback, method, resource, id, context) {
   return errObj => {
     let err = errObj && errObj.status || errObj;
-    debug('error occurred', err);
     let res = {
       error: err,
       text: errObj.text,
@@ -115,6 +122,10 @@ function handleError(callback, method, resource, id) {
     if (id) {
       res.id = id;
     }
+    if (context) {
+      res.context = context;
+    }
+    debug('handleError', res);
     callback(res)
   };
 }
