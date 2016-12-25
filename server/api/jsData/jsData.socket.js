@@ -30,7 +30,7 @@ function emitEvent(method, resource, sourceSocketId) {
           debug('emitEvent:', event, 'id:', socket.id);
           socket.emit(event, {
             resource: resource,
-            data: _.pick(data, ['id', 'objectXid'])
+            data: _.pick(data, ['id', 'objectXid', 'ts'])
           });
         }
 
