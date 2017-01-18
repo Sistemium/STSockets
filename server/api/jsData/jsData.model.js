@@ -65,7 +65,7 @@ exports.find = function (resource, id, options) {
       );
     }
 
-    let authorizedHash = headers.authorization + '#' + hash;
+    let authorizedHash = `${options.authId || headers.authorization}#${hash}`;
     let hashId = hash + '#' + id;
     let minUts = Date.now() - expireRedisAfter;
 

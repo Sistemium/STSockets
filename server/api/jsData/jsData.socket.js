@@ -119,7 +119,8 @@ function register(socket) {
         'x-return-post': true,
         'user-agent': socket.userAgent
       },
-      sourceSocketId: socket.id
+      sourceSocketId: socket.id,
+      authId: _.get(socket, 'account.authId')
     });
 
     if (socket.deviceUUID) {
