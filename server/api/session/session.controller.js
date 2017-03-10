@@ -41,6 +41,7 @@ function unRegister(socket) {
 }
 
 function touchFn() {
+  /*jshint validthis:true */
   let socket = this || {};
   socket.ts = new Date();
   ee.emit('session:state', socket);
