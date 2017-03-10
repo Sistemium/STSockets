@@ -23,22 +23,21 @@ const commandsData = {
     STMSyncer: 'fullSync'
   },
 
-  find: (resource, id) => {
+  find: (entity, id) => {
     return {
-      STMSocketController: {
+      STMSyncer: {
         'sendFindWithValue:': {
-          method: 'find',
-          resource: resource,
+          entity: entity,
           id: id
         }
       }
     }
   },
 
-  syncEntity: (resource) => {
+  syncEntity: (entity) => {
     return {
       STMSyncer: {
-        'receiveEntities:': [resource]
+        'receiveEntities:': [entity]
       }
     }
   }
@@ -174,7 +173,7 @@ function propagateToSisSales(event, data) {
 
     if (agentBuild(socket) >= 231 && agentName(socket) === 'iSisSales' && socket.org === org) {
       if (id) {
-        socket.emit('remoteCommands', commandsData.find(resource, id));
+        socket.emit('remoteCommands', commandsData.find(resourceName, id));
         debug('propagateToSisSales:device', socket.deviceUUID, `${resource}/${id}`);
       } else if (resourceName) {
         socket.emit('remoteCommands', commandsData.syncEntity(resourceName));
