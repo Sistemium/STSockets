@@ -1,20 +1,31 @@
 'use strict';
-let request = require('request');
-let debug = require('debug')('sts:makeRequest');
-let _ = require('lodash');
 
-module.exports = function makeRequest(options, resolve, reject) {
+const request = require('request');
+const debug = require('debug')('sts:makeRequest');
+const _ = require('lodash');
+
+
+module.exports = makeRequest;
+
+
+function makeRequest(options, resolve, reject) {
 
   let result;
   request(options, function (error, response, body) {
     if (error) {
       debug('Error occurred:', error);
-      return reject(500);
+      return reject({
+        status: response && response.status || 500,
+        text: body || 'Internal server error'
+      });
     }
 
     if (response.statusCode >= 400) {
       console.error('makeRequest error', response.statusCode, options, response.body);
-      return reject(response.statusCode);
+      return reject({
+        status: response.statusCode,
+        text: response.body
+      });
     }
 
     if (response.statusCode === 204) {
@@ -37,6 +48,7 @@ module.exports = function makeRequest(options, resolve, reject) {
     }
 
     return resolve({
+      xOffset: response.headers['x-offset'],
       eTag: response.headers.etag,
       date: response.headers.date,
       data: result,
@@ -44,4 +56,4 @@ module.exports = function makeRequest(options, resolve, reject) {
     });
   });
 
-};
+}

@@ -1,10 +1,11 @@
-var rolesUrl = 'https://api.sistemium.com/pha/roles';
-var Q = require ('q');
-var request = require('request');
+const request = require('request');
 
-exports.authByToken = function (token,userAgent) {
+const config = require('../../config/environment');
+const rolesUrl = config.pha.roles;
 
-  var options = {
+exports.authByToken = function (token, userAgent) {
+
+  let options = {
     url: rolesUrl,
     headers: {
       authorization: token,
@@ -12,13 +13,11 @@ exports.authByToken = function (token,userAgent) {
     }
   };
 
-  var q = Q.defer ();
+  return new Promise((resolve, reject) => {
 
-  var promise = function (resolve,reject) {
+    request.get(options, function (err, res, body) {
 
-    request.get(options,function(err,res,body){
-
-      var jsonBody;
+      let jsonBody;
 
       try {
         jsonBody = JSON.parse(body);
@@ -27,17 +26,13 @@ exports.authByToken = function (token,userAgent) {
       }
 
       if (!err && res.statusCode === 200 && jsonBody) {
-        resolve (jsonBody);
+        resolve(jsonBody);
       } else {
-        reject (res.statusCode || err);
+        reject(res.statusCode || err);
       }
 
     });
 
-  };
-
-  promise (q.resolve,q.reject);
-
-  return q.promise;
+  });
 
 };

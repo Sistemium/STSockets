@@ -1,23 +1,24 @@
 'use strict';
-var events = require('events');
-var ee = new events.EventEmitter();
-var _ = require('lodash');
-var debug = require ('debug') ('sts:session.controller');
 
-var sockData = require('../../components/sockData');
-var statusSocket = require('../../api/status/status.socket');
+const events = require('events');
+const _ = require('lodash');
+const debug = require('debug')('sts:session.controller');
 
-var sockets = [];
+const sockData = require('../../components/sockData');
+const statusSocket = require('../../api/status/status.socket');
 
-var socketData = function (socket) {
-  var di = socket.deviceInfo && {
-    deviceUUID: socket.deviceInfo.deviceUUID,
+const ee = new events.EventEmitter();
+const sockets = [];
+
+function socketData(socket) {
+  let di = socket.deviceInfo && {
+      deviceUUID: socket.deviceInfo.deviceUUID,
       deviceName: socket.deviceInfo.deviceName,
       devicePlatform: socket.deviceInfo.devicePlatform,
       bundleVersion: socket.deviceInfo.bundleVersion,
       systemVersion: socket.deviceInfo.systemVersion,
       buildType: socket.deviceInfo.buildType
-  };
+    };
   return {
     id: socket.id,
     userAgent: socket.userAgent,
@@ -28,25 +29,27 @@ var socketData = function (socket) {
     ts: socket.ts,
     deviceInfo: di
   };
-};
+}
 
-var unRegister = function(socket) {
-  var idx = sockets.indexOf(socket);
-  if (idx>-1) {
-    sockets.splice(idx,1);
+function unRegister(socket) {
+  let idx = sockets.indexOf(socket);
+  if (idx > -1) {
+    sockets.splice(idx, 1);
   }
   socket.destroyed = true;
-  ee.emit ('session:state',socket);
-};
+  ee.emit('session:state', socket);
+}
 
-var touchFn = function () {
-  this.ts = new Date();
-  ee.emit('session:state',this);
-};
+function touchFn() {
+  /*jshint validthis:true */
+  let socket = this || {};
+  socket.ts = new Date();
+  ee.emit('session:state', socket);
+}
 
-ee.on('session:state',function(changedSocket){
+ee.on('session:state', function (changedSocket) {
 
-  _.each(sockets,function(socket){
+  _.each(sockets, function (socket) {
     if (socket.subscriber['session:state']) {
 
       if (socket.org === changedSocket.org) {
@@ -66,7 +69,7 @@ ee.on('session:state',function(changedSocket){
 });
 
 
-exports.register = function(socket) {
+exports.register = function (socket) {
 
   sockets.push(socket);
 
@@ -75,12 +78,12 @@ exports.register = function(socket) {
 
   console.info('session register id:', socket.id);
 
-  socket.on('disconnect',function(){
+  socket.on('disconnect', function () {
     unRegister(socket);
   });
 
-  socket.on('sockData:register',function(ack){
-    sockData.register(socket,function(res){
+  socket.on('sockData:register', function (ack) {
+    sockData.register(socket, function (res) {
       if (typeof ack === 'function') {
         ack({
           isAuthorized: !!res
@@ -89,7 +92,7 @@ exports.register = function(socket) {
     });
   });
 
-  socket.on('status:register',function(ack){
+  socket.on('status:register', function (ack) {
     statusSocket.register(socket);
     if (typeof ack === 'function') {
       ack({
@@ -98,9 +101,9 @@ exports.register = function(socket) {
     }
   });
 
-  socket.on('session:state:register',function(ack){
+  socket.on('session:state:register', function (ack) {
     socket.subscriber ['session:state'] = true;
-    console.log ('session:state:register id:', socket.id);
+    console.log('session:state:register id:', socket.id);
     if (typeof ack === 'function') {
       ack({
         isAuthorized: true
@@ -108,9 +111,9 @@ exports.register = function(socket) {
     }
   });
 
-  socket.on('session:state:unregister',function(ack){
+  socket.on('session:state:unregister', function (ack) {
     socket.subscriber ['session:state'] = false;
-    console.log ('session:state:unregister id:', socket.id);
+    console.log('session:state:unregister id:', socket.id);
     if (typeof ack === 'function') {
       ack({
         isAuthorized: true
@@ -124,12 +127,12 @@ exports.register = function(socket) {
 
 exports.list = function (req, res) {
 
-  var selfOrg = _.get(req.auth,'account.org');
+  let selfOrg = _.get(req.auth, 'account.org');
 
-  var data = _.filter(sockets,function (socket){
-    return _.get(socket,'account.org') === selfOrg;
-  }).map(function (socket){
-    return socketData (socket);
+  let data = _.filter(sockets, function (socket) {
+    return _.get(socket, 'account.org') === selfOrg;
+  }).map(function (socket) {
+    return socketData(socket);
   });
 
   return res.status(200).json(data || []);

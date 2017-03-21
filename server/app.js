@@ -7,9 +7,9 @@
 // Set default node environment to development
 require('debug').log = console.info.bind(console);
 
-var express = require('express');
-var config = require('./config/environment');
-var dynamoose = require('dynamoose');
+const express = require('express');
+const config = require('./config/environment');
+const dynamoose = require('dynamoose');
 import http from 'http';
 
 //dynamodb configuration
@@ -21,9 +21,9 @@ dynamoose.AWS.config.update({
 });
 
 // Setup server
-var app = express();
-var server = http.createServer(app);
-var socketio = require('socket.io')(server, {
+const app = express();
+const server = http.createServer(app);
+const socketio = require('socket.io')(server, {
   serveClient: (config.env === 'production'),
   path: '/socket.io-client'
 });

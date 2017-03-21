@@ -1,14 +1,14 @@
-var config = require('../../config/environment');
-var apiV3 = config.APIv3;
+const request = require('request');
+const _ = require('lodash');
 
-var request = require('request');
-var _ = require('lodash');
+const config = require('../../config/environment');
+const apiV3 = config.APIv3;
 
-var db = {};
+const db = {};
 
 exports.get = function (request,socket) {
 
-  var e = db [request.entity];
+  //let e = db [request.entity];
 
   return new Promise (function (resolve,reject) {
     //if (!e) {
@@ -23,7 +23,7 @@ exports.get = function (request,socket) {
 
 function getEntityData (req, socket) {
 
-  var
+  let
     token = socket.accessToken,
     userAgent = socket.userAgent,
     deviceUUID = socket.deviceUUID,
@@ -31,7 +31,7 @@ function getEntityData (req, socket) {
     entity = req.entity
   ;
 
-  var options = {
+  let options = {
     url: apiV3 + org + '/' + entity,
     headers: {
       authorization: token,
@@ -46,9 +46,9 @@ function getEntityData (req, socket) {
 
   console.info ('SAPIV3 getEntityData entity:', entity);
 
-  var executor = function (resolve,reject){
+  function executor(resolve,reject){
 
-    var storedEntity = db [entity];
+    let storedEntity = db [entity];
 
     if (!storedEntity) {
       storedEntity = db [entity] = {
@@ -57,9 +57,11 @@ function getEntityData (req, socket) {
       };
     }
 
-    var onResponse = function(err,res,body){
+    request.get(options,onResponse);
 
-      var jsonBody;
+    function onResponse(err,res,body){
+
+      let jsonBody;
 
       if (err) {
         console.log(err);
@@ -89,11 +91,9 @@ function getEntityData (req, socket) {
         reject ();
       }
 
-    };
+    }
 
-    request.get(options,onResponse);
-
-  };
+  }
 
   return new Promise (executor);
 

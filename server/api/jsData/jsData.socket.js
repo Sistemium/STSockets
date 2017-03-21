@@ -1,13 +1,20 @@
 'use strict';
 
-let debug = require('debug')('sts:jsData:socket');
-let _ = require('lodash');
-let uuid = require('node-uuid');
-let router = require ('./jsData.socket.router');
+const debug = require('debug')('sts:jsData:socket');
+const _ = require('lodash');
+const uuid = require('node-uuid');
+const router = require('./jsData.socket.router');
 
-var subscriptions = [];
+const subscriptions = [];
 
-function emitEvent (method, resource, sourceSocketId) {
+
+exports.emitEvent = emitEvent;
+exports.subscribe = subscribe;
+exports.unSubscribe = unSubscribe;
+exports.register = register;
+
+
+function emitEvent(method, resource, sourceSocketId) {
 
   debug('emitEvent:', method, resource);
 
@@ -23,7 +30,7 @@ function emitEvent (method, resource, sourceSocketId) {
           debug('emitEvent:', event, 'id:', socket.id);
           socket.emit(event, {
             resource: resource,
-            data: _.pick(data, 'id')
+            data: _.pick(data, ['id', 'objectXid', 'ts'])
           });
         }
 
@@ -34,9 +41,7 @@ function emitEvent (method, resource, sourceSocketId) {
 
 }
 
-exports.emitEvent = emitEvent;
-
-function unRegister (socket) {
+function unRegister(socket) {
 
   let toUnsubscribe = _.filter(subscriptions, {socket: socket});
 
@@ -48,10 +53,11 @@ function unRegister (socket) {
 
 }
 
-function subscribe (socket) {
+function subscribe(socket) {
 
-  return function (filter, callback){
-    var subscription = {
+  return function (filter, callback) {
+
+    let subscription = {
       id: uuid.v4(),
       socket: socket,
       filter: filter
@@ -61,23 +67,26 @@ function subscribe (socket) {
 
     subscriptions.push(subscription);
 
-    if (_.isFunction(callback)) {
-      callback({data: subscription.id});
-    }
+    let result = {data: subscription.id};
+
+    if (_.isFunction(callback)) return callback(result);
+
+    return result;
+
   };
 
 }
 
-function unSubscribe (socket) {
+function unSubscribe(socket) {
   return function (id, callback) {
 
-    var idx = _.findIndex (subscriptions, {id: id});
-    var subscription;
+    let idx = _.findIndex(subscriptions, {id: id});
+    let subscription;
 
-    if (idx>=0) {
+    if (idx >= 0) {
       subscription = subscriptions [idx];
       debug('jsData:unsubscribe', id, 'socket:', socket.id, 'filter:', subscription.filter);
-      subscriptions.splice(idx,1);
+      subscriptions.splice(idx, 1);
     } else {
       debug('jsData:unsubscribe', id, 'socket:', socket.id, 'no subscription');
     }
@@ -89,10 +98,8 @@ function unSubscribe (socket) {
   };
 }
 
-exports.subscribe = subscribe;
-exports.unSubscribe = unSubscribe;
 
-exports.register = function (socket) {
+function register(socket) {
 
   socket.on('jsData:subscribe', subscribe(socket));
 
@@ -105,18 +112,28 @@ exports.register = function (socket) {
   socket.on('jsData', function (data, callback) {
 
     data.options = data.options || {};
+
     _.defaultsDeep(data.options, {
       headers: {
         authorization: socket.accessToken,
-        'x-return-post': true
+        'x-return-post': true,
+        'user-agent': socket.userAgent
       },
-      sourceSocketId: socket.id
+      sourceSocketId: socket.id,
+      authId: _.get(socket, 'account.authId')
     });
+
+    if (socket.deviceUUID) {
+      data.options.headers.deviceuuid = socket.deviceUUID;
+      if (data.attrs) {
+        data.attrs.deviceUUID = socket.deviceUUID;
+      }
+    }
 
     //debug('jsData event', data);
 
-    router (data, callback);
+    router(data, callback);
 
   });
 
-};
+}

@@ -1,79 +1,132 @@
 'use strict';
 
-let jsDataModel = require('./jsData.model');
-let debug = require('debug')('sts:jsData:socket:router');
+const jsDataModel = require('./jsData.model');
+const debug = require('debug')('sts:jsData:socket:router');
+const _ = require('lodash');
 
-function handleSuccess(callback, method, resource, params) {
-  return reply => {
-    var res = {data: reply || []};
-    console.info ('JSD', method, resource, params, res.data.id ? 1 : res.data.length);
-    callback(res);
-    return reply;
+
+module.exports = router;
+
+
+function router(data, callback) {
+
+  let success = handleSuccess(callback, data.method, data.resource, data.id || data.params, data.context);
+  let failure = handleError(callback, data.method, data.resource, data.id, data.context);
+  let offset = _.get(data, 'options.offset');
+
+  let params = data.params || {};
+
+  if (offset) {
+    params['x-offset:'] = offset;
   }
-}
 
+  let pageSize = _.get(data, 'options.pageSize');
 
-function handleError(callback) {
-  return err => {
-    debug('error occurred', err);
-    callback({error: err})
-  };
-}
-
-
-function router (data, callback) {
-
-  var success = handleSuccess(callback, data.method, data.resource, data.id || data.params);
-  var failure = handleError(callback);
+  if (pageSize) {
+    params['x-page-size:'] = pageSize;
+  }
 
   switch (data.method) {
 
-    case 'findAll' :
-    {
-      jsDataModel.findAll(data.resource, data.params, data.options)
-        .then(success)
+    case 'findAll' : {
+      jsDataModel.findAll(data.resource, params, data.options)
+        .then(handleFindAllSuccess(callback, data.method, data.resource, data.id || data.params, data.context, pageSize))
         .catch(failure)
       ;
       break;
     }
-    case 'find':
-    {
+    case 'find': {
       jsDataModel.find(data.resource, data.id, data.options)
         .then(success)
         .catch(failure)
       ;
       break;
     }
-    case 'create':
-    {
+    case 'create': {
       jsDataModel.create(data.resource, data.attrs, data.options)
         .then(success)
         .catch(failure)
       ;
       break;
     }
-    case 'update':
-    {
+    case 'update': {
       jsDataModel.update(data.resource, data.id, data.attrs, data.options)
         .then(success)
         .catch(failure)
       ;
       break;
     }
-    case 'destroy':
-    {
+    case 'destroy': {
       jsDataModel.destroy(data.resource, data.id, data.options)
         .then(success)
         .catch(failure)
       ;
       break;
     }
-    default:
-    {
-      return failure (`Unsupported method '${data.method}'`);
+    default: {
+      return failure(`Unsupported method '${data.method}'`);
     }
   }
 
 }
 
-module.exports = router;
+
+function handleSuccess(callback, method, resource, params, context) {
+  return reply => {
+    let res = {
+      data: reply || [],
+      resource: resource,
+      method: method
+    };
+    if (context) {
+      res.context = context;
+    }
+    debug('handleSuccess', method, resource, params, res.data.id ? 1 : res.data.length, context);
+    callback(res);
+    return reply;
+  }
+}
+
+function handleFindAllSuccess(callback, method, resource, params, context, pageSize) {
+  return reply => {
+    let res = {
+      data: reply.data || [],
+      resource: resource,
+      method: method, context
+    };
+    let offset = reply && reply.xOffset;
+    if (offset) {
+      res.offset = offset;
+    }
+    if (pageSize) {
+      res.pageSize = pageSize;
+    }
+    if (context) {
+      res.context = context;
+    }
+    debug('handleFindAllSuccess', method, resource, params, res.data.id ? 1 : res.data.length, context, pageSize);
+    callback(res);
+    return reply;
+  }
+}
+
+function handleError(callback, method, resource, id, context) {
+  return errObj => {
+    let err = errObj && errObj.status || errObj;
+    let res = {
+      error: err,
+      text: errObj.text,
+      resource: resource,
+      method: method
+    };
+    if (id) {
+      res.id = id;
+    }
+    if (context) {
+      res.context = context;
+    }
+    debug('handleError', res);
+    callback(res)
+  };
+}
+

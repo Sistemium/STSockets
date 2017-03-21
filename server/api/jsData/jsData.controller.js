@@ -1,28 +1,22 @@
 'use strict';
-let jsDataModel = require('./jsData.model');
+
+const jsDataModel = require('./jsData.model');
 
 
-function handleResponse (response) {
-  return data => response.json(data);
-}
+exports.indexBy = function (req, res, next) {
 
-function handleError (response, next) {
-  return err => {
-    if (err === 401) {
-      return response.status(401).end();
-    }
+  let resource = `${req.params.pool}/${req.params.parentResource}/${req.params.parentId}/${req.params.resource}`;
+  let params = req.query;
+  let options = {
+    headers: req.headers
+  };
 
-    if (err === 404) {
-      return response.status(404).end();
-    }
+  jsDataModel.findAll(resource, params, options)
+    .then(handleFindAllResponse(res))
+    .catch(handleError(res, next))
+  ;
 
-    if (err && err.response && err.response.status === 500) {
-      return response.status(500).end(err.error);
-    }
-
-    next(err);
-  }
-}
+};
 
 exports.index = function (req, res, next) {
 
@@ -33,7 +27,7 @@ exports.index = function (req, res, next) {
   };
 
   jsDataModel.findAll(resource, params, options)
-    .then(handleResponse(res))
+    .then(handleFindAllResponse(res))
     .catch(handleError(res, next))
   ;
 
@@ -102,3 +96,40 @@ exports.destroy = function (req, res, next) {
   ;
 
 };
+
+function handleResponse(response) {
+  return (data) => {
+    response.json(data);
+  };
+}
+
+function handleFindAllResponse(response) {
+  return (res) => {
+    let offset = res && res.xOffset;
+    if (offset) {
+      response.set('X-Offset', offset);
+    }
+    response.json(res.data);
+  };
+}
+
+function handleError(response, next) {
+  return errObj => {
+
+    let err = errObj && errObj.status || errObj;
+
+    if (err === 401) {
+      return response.status(401).end();
+    }
+
+    if (err === 404) {
+      return response.status(404).end();
+    }
+
+    if (err && err.response && err.response.status === 500) {
+      return response.status(500).end(err.error);
+    }
+
+    next(err);
+  }
+}

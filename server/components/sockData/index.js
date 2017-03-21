@@ -1,21 +1,21 @@
 'use strict';
-var events = require('events');
-var eventEmitter = new events.EventEmitter();
-var _ = require('lodash');
-var config = require('../../config/environment');
 
-var sockets = [];
-var apiV1 = config.APIv1;
-var apiV3 = config.APIv3;
+const events = require('events');
+const _ = require('lodash');
+const request = require('request');
 
-var rolesUrl = 'https://api.sistemium.com/pha/roles';
+const apiv3 = require('./st-api-v3');
+const debug = require ('debug') ('sts:sockData');
+const config = require('../../config/environment');
 
-var request = require('request');
+const sockets = [];
+const apiV1 = config.APIv1;
+const apiV3 = config.APIv3;
+const rolesUrl = config.pha.roles;
 
-var Q = require ('q');
+const eventEmitter = new events.EventEmitter();
 
-var apiv3 = require('./st-api-v3');
-var debug = require ('debug') ('sts:sockData');
+const liveSearchData = {};
 
 eventEmitter.on('api:data', function (data) {
   sockets.every(function(socket){
@@ -23,23 +23,71 @@ eventEmitter.on('api:data', function (data) {
   });
 });
 
-var unRegister = function(socket) {
-  var idx = sockets.indexOf(socket);
+exports.register = sockDataRegister;
+
+
+function sockDataRegister(socket,ack) {
+
+  authByToken(socket.accessToken,socket.deviceUUID,socket.userAgent,function(res,status){
+
+    if (status === 401) {
+
+      console.info(
+        'sockData register id', socket.id,
+        'not authorized'
+      );
+
+      ack(false);
+
+    } else if (!(res && res.account)) {
+      console.info('sockData register id', socket.id, 'error: ', status);
+      //socket.disconnect();
+    } else {
+
+      socket.org = res.account.org;
+      socket.userId = res.account.code;
+
+      _.extend (socket, _.pick(res,['account','roles','token']));
+
+      sockets.push(socket);
+
+      console.info(
+        'sockData register id', socket.id,
+        'deviceUUID:', socket.deviceUUID,
+        'org:', socket.org,
+        'userId:', socket.userId
+      );
+
+      socket.touch();
+
+      register (socket);
+
+      ack(true);
+
+    }
+
+  });
+
+}
+
+
+function unRegister(socket) {
+  let idx = sockets.indexOf(socket);
   if (idx>-1) {
     sockets.splice(idx,1);
   }
-};
+}
 
-var postApi = function (data, socket, callback) {
+function postApi(data, socket, callback) {
 
-  var
+  let
     auth = socket.accessToken,
     userAgent = socket.userAgent,
     deviceUUID = socket.deviceUUID,
     org = socket.org
   ;
 
-  var options = {
+  let options = {
     url: apiV1 + org,
     json: data,
     headers: {
@@ -54,12 +102,12 @@ var postApi = function (data, socket, callback) {
     callback(body);
   });
 
-};
+}
 
 
-var authByToken = function (token,deviceUUID,userAgent,callback) {
+function authByToken(token,deviceUUID,userAgent,callback) {
 
-  var options = {
+  let options = {
     url: rolesUrl,
     headers: {
       authorization: token,
@@ -70,7 +118,7 @@ var authByToken = function (token,deviceUUID,userAgent,callback) {
 
   request.get(options,function(err,res,body){
 
-    var jsonBody;
+    let jsonBody;
 
     try {
       jsonBody = JSON.parse(body);
@@ -78,23 +126,21 @@ var authByToken = function (token,deviceUUID,userAgent,callback) {
       jsonBody = false;
     }
 
-    callback(err ? false : jsonBody, res.statusCode);
+    callback(err ? false : jsonBody, res && res.statusCode);
   });
 
-};
+}
 
-var liveSearchData = {};
+function getLiveSearchData(entity, socket) {
 
-var getLiveSearchData = function (entity, socket) {
-
-  var
+  let
     token = socket.accessToken,
     userAgent = socket.userAgent,
     deviceUUID = socket.deviceUUID,
     org = socket.org
   ;
 
-  var options = {
+  let options = {
     url: apiV3 + org + '/' + entity,
     headers: {
       authorization: token,
@@ -106,16 +152,17 @@ var getLiveSearchData = function (entity, socket) {
     }
   };
 
-  var q = Q.defer ();
+  return new Promise((resolve,reject) => {
 
-  var r = function (resolve,reject){
+    let lsd = liveSearchData [entity];
 
     console.info ('getLiveSearchData entity:', entity, 'keys:', Object.keys(liveSearchData));
-    var lsd = liveSearchData [entity];
 
-    var onResponse = function(err,res,body){
+    request.get(options, onResponse);
 
-      var jsonBody;
+    function onResponse(err, res, body){
+
+      let jsonBody;
 
       try {
         jsonBody = JSON.parse(body);
@@ -147,24 +194,18 @@ var getLiveSearchData = function (entity, socket) {
 
       liveSearchData[entity].busy = false;
 
-    };
+    }
 
-    request.get(options,onResponse);
+  })
 
-  };
-
-  r (q.resolve, q.reject);
-
-  return q.promise;
-
-};
+}
 
 
-var liveSearchBy = function (query,socket,callback) {
+function liveSearchBy(query,socket,callback) {
 
-  var entity = query.entity;
-  var entityData = liveSearchData[entity];
-  var limit = query.limit || 50;
+  let entity = query.entity;
+  let entityData = liveSearchData[entity];
+  let limit = query.limit || 50;
 
   if (!entityData) {
 
@@ -183,8 +224,8 @@ var liveSearchBy = function (query,socket,callback) {
 
   } else {
 
-    var re = new RegExp(query.searchText,'ig');
-    var matches = _.filter (entityData.store, function (e){
+    let re = new RegExp(query.searchText,'ig');
+    let matches = _.filter (entityData.store, function (e){
       return e.name && e.name.match(re);
     });
 
@@ -199,9 +240,9 @@ var liveSearchBy = function (query,socket,callback) {
 
   }
 
-};
+}
 
-var register = function (socket) {
+function register(socket) {
 
   socket.on('disconnect', function () {
     unRegister(socket);
@@ -209,21 +250,22 @@ var register = function (socket) {
 
   socket.on('data:v1', function (data, clientAck) {
 
-    var ack = (typeof clientAck === 'function') ? clientAck : function () {};
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
     socket.touch();
 
     console.info('data:v1', 'id:', socket.id, 'ack:', !!ack, 'payload:', (JSON.stringify(data)||'').length);
 
-    postApi (data, socket, ack).on ('response',function () {
-      socket.touch()
-    });
+    postApi (data, socket, ack)
+      .on ('response', () => {
+        socket.touch()
+      });
 
   });
 
   socket.on('livesearch', function (data, clientAck) {
 
-    var ack = (typeof clientAck === 'function') ? clientAck : function () {};
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
     socket.touch();
 
@@ -235,7 +277,7 @@ var register = function (socket) {
 
   socket.on('get:v3', function (request, clientAck) {
 
-    var ack = (typeof clientAck === 'function') ? clientAck : function (res) {
+    let ack = (typeof clientAck === 'function') ? clientAck : function (res) {
       console.log ('empty callback:', res);
     };
 
@@ -250,47 +292,4 @@ var register = function (socket) {
 
   });
 
-};
-
-exports.register = function(socket,ack) {
-
-  authByToken(socket.accessToken,socket.deviceUUID,socket.userAgent,function(res,status){
-
-    if (status === 401) {
-
-      console.info(
-        'sockData register id', socket.id,
-        'not authorized'
-      );
-
-      ack(false);
-
-    } else if (!(res && res.account)) {
-      console.info('sockData register id', socket.id, 'error: ', status);
-      //socket.disconnect();
-    } else {
-
-      socket.org = res.account.org;
-      socket.userId = res.account.code;
-      _.extend (socket, res);
-
-      sockets.push(socket);
-
-      console.info(
-        'sockData register id', socket.id,
-        'deviceUUID:', socket.deviceUUID,
-        'org:', socket.org,
-        'userId:', socket.userId
-      );
-
-      socket.touch();
-
-      register (socket);
-
-      ack(true);
-
-    }
-
-  });
-
-};
+}

@@ -4,12 +4,13 @@
 
 'use strict';
 
-var statusSocket = require('../api/status/status.socket');
-var remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
-var sockData = require('../components/sockData');
-var session = require('../api/session/session.controller');
-var jsDataSocket = require('../api/jsData/jsData.socket');
+const statusSocket = require('../api/status/status.socket');
+const remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
+const sockData = require('../components/sockData');
+const session = require('../api/session/session.controller');
+const jsDataSocket = require('../api/jsData/jsData.socket');
 
+import {agentName, agentBuild} from '../components/util';
 
 function onDisconnect(socket) {
 
@@ -34,9 +35,26 @@ function onConnect(socket) {
 
   socket.on ('authorization', function (data,clientAck){
 
-    var ack = (typeof clientAck === 'function') ? clientAck : function () {};
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
-    console.info('authorization:', 'id:', socket.id, data && data.accessToken);
+    if (!data) {
+      return ack({
+        isAuthorized: false
+      });
+    }
+
+    if (data.bundleIdentifier && data.appVersion) {
+      socket.userAgent = data.bundleIdentifier + '/' + data.appVersion;
+    }
+
+    console.info('authorization:', socket.id, agentName(socket), agentBuild(socket), data.accessToken);
+
+    if (socket.isAuthorized && socket.accessToken === data.accessToken) {
+      return ack({
+        isAuthorized: true,
+        wasAuthorized: true
+      });
+    }
 
     if ((socket.isAuthorized = !!data.accessToken)) {
       socket.accessToken = data.accessToken;
@@ -74,11 +92,11 @@ function onConnect(socket) {
   });
 
   socket.on('info', function (data,clientAck) {
-    var ack = (typeof clientAck === 'function') ? clientAck : function () {};
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
 
     ack((new Date()).toISOString());
 
-    console.info('info:', JSON.stringify(data, null, 2));
+    console.info('info:', 'userId:', socket.userId, 'deviceUUID:', socket.deviceUUID, 'data:', JSON.stringify(data));
   });
 
 }

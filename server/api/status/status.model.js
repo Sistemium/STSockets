@@ -1,9 +1,9 @@
 'use strict';
 
-var dynamoose = require('dynamoose'),
-   Schema = dynamoose.Schema;
+const dynamoose = require('dynamoose'),
+  Schema = dynamoose.Schema;
 
-var StatusSchema = new Schema({
+const StatusSchema = new Schema({
   xid: {
     type: String,
     hashKey: true

@@ -1,20 +1,21 @@
 'use strict';
 
-let _ = require('lodash');
-let debug = require('debug')('sts:jsData.model');
-let config = require('../../config/environment');
-let makeRequest = require('./makeRequest');
-let redis = require('../../config/redis');
-let sockets = require('./jsData.socket');
+const _ = require('lodash');
+const LRU = require('lru-cache');
+const debug = require('debug')('sts:jsData.model');
+
+const config = require('../../config/environment');
+const makeRequest = require('./makeRequest');
+const redis = require('../../config/redis');
+const sockets = require('./jsData.socket');
 
 
-let LRU = require('lru-cache');
-let lruOptions = {
+const lruOptions = {
   max: process.env.JSD_LRU_MAX || 100,
   maxAge: process.env.JSD_LRU_MAX_AGE || (1000 * 30)
 };
 
-let findRequests = LRU(lruOptions);
+const findRequests = LRU(lruOptions);
 
 
 exports.findAll = function (resource, params, options) {
@@ -23,7 +24,7 @@ exports.findAll = function (resource, params, options) {
   return new Promise(function (resolve, reject) {
     let opts = {
       qs: params,
-      url: config.APIv4 + resource,
+      url: config.apiV4(resource),
       method: 'GET',
       headers: headers
     };
@@ -32,7 +33,7 @@ exports.findAll = function (resource, params, options) {
 
     makeRequest(opts, fromBackend => {
       //debug('fromBackend', fromBackend);
-      resolve(fromBackend.data);
+      resolve(fromBackend);
     }, reject);
   });
 
@@ -42,7 +43,7 @@ exports.find = function (resource, id, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let hash = config.APIv4 + resource;
+    let hash = config.apiV4(resource);
     let opts = {
       url: hash + '/' + id,
       method: 'GET',
@@ -51,19 +52,28 @@ exports.find = function (resource, id, options) {
     let expireRedisAfter = config.redis.expireAfter;
 
     if (!headers.authorization) {
-      reject ({
-        error: 'Authorization required',
-        status: 401
-      })
+      reject(
+        // 'Authorization required'
+        401
+      );
     }
 
-    let authorizedHash = headers.authorization + '#' + hash;
+    if (!id) {
+      reject(
+        //'Find requires id',
+        400
+      );
+    }
+
+    let authorizedHash = `${options.authId || headers.authorization}#${hash}`;
     let hashId = hash + '#' + id;
     let minUts = Date.now() - expireRedisAfter;
 
-    function getFromBackend () {
+    function getFromBackend() {
 
-      let pending = findRequests.get(hashId);
+      // TODO: check if possible to use pending by unauthorized hash
+      let authorizedHashId = `${authorizedHash}#${id}`;
+      let pending = findRequests.get(authorizedHashId);
 
       if (!pending) {
 
@@ -101,24 +111,24 @@ exports.find = function (resource, id, options) {
 
         });
 
-        findRequests.set(hashId, pending);
+        findRequests.set(authorizedHashId, pending);
         debug('find:makeRequest', opts);
 
-        pending.then(()=> {
-          findRequests.del(hashId);
+        pending.then(() => {
+          findRequests.del(authorizedHashId);
           //debug('delete:pending:then');
-        }, ()=> {
-          findRequests.del(hashId);
+        }, () => {
+          findRequests.del(authorizedHashId);
           //debug('delete:pending:catch');
         });
 
       }
 
       pending.then(resolve, reject);
-      
+
     }
 
-    function gotFromRedisOrBackend (inRedis) {
+    function gotFromRedisOrBackend(inRedis) {
       if (inRedis && inRedis.data && inRedis.uts > minUts) {
         debug('find:redis', `${hashId} (${inRedis.uts})`);
         resolve(inRedis.data);
@@ -132,7 +142,7 @@ exports.find = function (resource, id, options) {
       if (authData && authData.uts > expireRedisAfter) {
         return redis.hgetAsync(hash, id)
           .then(gotFromRedisOrBackend)
-          .catch((err)=> {
+          .catch((err) => {
             console.error('jsData:find:redis:error', err);
             debug('find:makeRequest', opts);
             makeRequest(opts, (fromBackend) => {
@@ -140,7 +150,7 @@ exports.find = function (resource, id, options) {
             }, reject);
           });
       } else {
-        return getFromBackend ();
+        return getFromBackend();
       }
 
     });
@@ -149,11 +159,15 @@ exports.find = function (resource, id, options) {
 };
 
 function createOrUpdate(method, options) {
+
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
-    let url = config.APIv4 + options.resource;
+
+    let url = config.apiV4(options.resource);
+    let hash = url;
     url += options.id ? '/' + options.id : '';
+
     let opts = {
       url: url,
       method: method,
@@ -161,10 +175,30 @@ function createOrUpdate(method, options) {
       json: options.attrs,
       qs: options.qs
     };
+
+    let id = options.id || _.get(options, 'attrs.id');
+
     makeRequest(opts, (fromBackend) => {
       if (fromBackend && fromBackend.data) {
+
         fromBackend.uts = Date.now();
-        //debug('fromBackend', fromBackend);
+
+        if (id) {
+          redis.hdelAsync(hash, id);
+        }
+
+        let objectXid = fromBackend.data.objectXid;
+        let name = fromBackend.data.name;
+
+        // debug('objectXid', objectXid, name, options.resource);
+
+        if (objectXid && /.*\/RecordStatus$/i.test(options.resource)) {
+          let org = options.resource.match(/[^\/]+\//)[0]||'';
+          sockets.emitEvent('destroy', org + name, options.sourceSocketId)({
+            id: objectXid
+          });
+        }
+
         resolve(fromBackend.data);
         //sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
       } else {
@@ -203,18 +237,27 @@ exports.update = function (resource, id, attrs, options) {
 exports.destroy = function (resource, id, options) {
 
   return new Promise(function (resolve, reject) {
-    let url = config.APIv4 + resource + '/' + id;
+
+    if (!id) {
+      return reject('id is required');
+    }
+
+    let hash = config.apiV4(resource);
+    let url = hash + '/' + id;
     let opts = {
       url: url,
       method: 'DELETE',
       headers: _.pick(options.headers, config.headers),
       qs: options.qs
     };
+
     makeRequest(opts, () => {
       sockets.emitEvent('destroy', resource, options.sourceSocketId)({
         id: id
       });
+      redis.hdelAsync(hash, id);
       resolve();
     }, reject);
+
   });
 };
