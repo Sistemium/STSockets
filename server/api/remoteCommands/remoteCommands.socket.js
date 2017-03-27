@@ -172,9 +172,10 @@ function propagateToSisSales(event, data) {
 
   _.each(sockets, socket => {
 
-    debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
+    if (agentBuild(socket) >= 301 && agentName(socket) === 'iSisSales' && socket.org === org) {
 
-    if (agentBuild(socket) >= 231 && agentName(socket) === 'iSisSales' && socket.org === org) {
+      debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
+
       if (id) {
         socket.emit('remoteCommands', commandsData.find(resourceName, id));
         debug('propagateToSisSales:device', socket.deviceUUID, `${resource}/${id}`);
@@ -182,6 +183,7 @@ function propagateToSisSales(event, data) {
         socket.emit('remoteCommands', commandsData.syncEntity(resourceName));
         debug('propagateToSisSales:device', socket.deviceUUID, `${resourceName}`);
       }
+
     }
 
   });
