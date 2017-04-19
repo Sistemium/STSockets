@@ -9,16 +9,16 @@ require('debug').log = console.info.bind(console);
 
 const express = require('express');
 const config = require('./config/environment');
-const dynamoose = require('dynamoose');
+// const dynamoose = require('dynamoose');
 import http from 'http';
 
 //dynamodb configuration
-dynamoose.defaults.waitForActiveTimeout = 100;
-dynamoose.AWS.config.update({
-  accessKeyId: config.AWS.accessKeyId,
-  secretAccessKey: config.AWS.secretAccessKey,
-  region: config.AWS.region
-});
+// dynamoose.defaults.waitForActiveTimeout = 100;
+// dynamoose.AWS.config.update({
+//   accessKeyId: config.AWS.accessKeyId,
+//   secretAccessKey: config.AWS.secretAccessKey,
+//   region: config.AWS.region
+// });
 
 // Setup server
 const app = express();

@@ -1,6 +1,6 @@
 'use strict';
 
-const Status = require('./status.model');
+// const Status = require('./status.model');
 const uuid = require('node-uuid');
 
 exports.register = function (socket) {
