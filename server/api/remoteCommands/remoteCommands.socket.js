@@ -60,7 +60,10 @@ const sales = {
 subscribeJsData(sales, [
   'dr50/SaleOrder', 'dr50/SaleOrderPosition',
   'dr50/RecordStatus',
-  'dr50/Stock'
+  'dr50/Stock',
+  'r50/SaleOrder', 'r50/SaleOrderPosition',
+  'r50/RecordStatus',
+  'r50/Stock'
 ]);
 
 eventEmitter.on('remoteCommands', function (params) {
@@ -169,9 +172,10 @@ function propagateToSisSales(event, data) {
 
   _.each(sockets, socket => {
 
-    debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
+    if (agentBuild(socket) >= 301 && agentName(socket) === 'iSisSales' && socket.org === org) {
 
-    if (agentBuild(socket) >= 231 && agentName(socket) === 'iSisSales' && socket.org === org) {
+      debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
+
       if (id) {
         socket.emit('remoteCommands', commandsData.find(resourceName, id));
         debug('propagateToSisSales:device', socket.deviceUUID, `${resource}/${id}`);
@@ -179,6 +183,7 @@ function propagateToSisSales(event, data) {
         socket.emit('remoteCommands', commandsData.syncEntity(resourceName));
         debug('propagateToSisSales:device', socket.deviceUUID, `${resourceName}`);
       }
+
     }
 
   });
