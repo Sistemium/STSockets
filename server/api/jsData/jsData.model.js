@@ -179,37 +179,38 @@ function createOrUpdate(method, options) {
 
     let id = options.id || _.get(options, 'attrs.id');
 
-    makeRequest(opts, (fromBackend) => {
-      if (fromBackend && fromBackend.data) {
+    makeRequest(opts, fromBackend => {
 
-        fromBackend.uts = Date.now();
-
-        if (id) {
-          redis.hdelAsync(hash, id);
-        }
-
-        let objectXid = fromBackend.data.objectXid;
-        let name = fromBackend.data.name;
-
-        // debug('objectXid', objectXid, name, options.resource);
-
-        if (objectXid && /.*\/RecordStatus$/i.test(options.resource)) {
-          let org = options.resource.match(/[^\/]+\//)[0]||'';
-          sockets.emitEvent('destroy', org + name, options.sourceSocketId)({
-            id: objectXid
-          });
-        }
-
-        resolve(fromBackend.data);
-        //sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
-      } else {
-        reject({
+      if (!fromBackend || !fromBackend.data) {
+        return reject({
           error: 'Invalid backend response',
           response: fromBackend
         });
       }
+
+      fromBackend.uts = Date.now();
+
+      if (id) {
+        redis.hdelAsync(hash, id);
+      }
+
+      let {objectXid, name, isRemoved} = fromBackend.data;
+
+      // debug('objectXid', objectXid, name, options.resource);
+
+      if (objectXid && /.*\/RecordStatus$/i.test(options.resource) && isRemoved) {
+        let org = _.first(options.resource.match(/[^\/]+\//)) || '';
+        return destroy(org + name, objectXid, options.options)
+          .then(() => resolve(fromBackend.data));
+      }
+
+      resolve(fromBackend.data);
+      //sockets.emitEvent('update',options.resource, _.get(options,'options.sourceSocketId'))(fromBackend.data);
+
     }, reject);
+
   });
+
 }
 
 function create(resource, attrs, options) {
