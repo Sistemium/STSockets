@@ -1,14 +1,12 @@
-'use strict';
+import _ from 'lodash';
+import LRU from 'lru-cache';
 
-const _ = require('lodash');
-const LRU = require('lru-cache');
+import config from '../../config/environment';
+import makeRequest from './makeRequest';
+import redis from '../../config/redis';
+import sockets from './jsData.socket';
+
 const debug = require('debug')('sts:jsData.model');
-
-const config = require('../../config/environment');
-const makeRequest = require('./makeRequest');
-const redis = require('../../config/redis');
-const sockets = require('./jsData.socket');
-
 
 const lruOptions = {
   max: process.env.JSD_LRU_MAX || 100,
@@ -17,8 +15,10 @@ const lruOptions = {
 
 const findRequests = LRU(lruOptions);
 
+export {findAll, find, create, update, destroy};
 
-exports.findAll = function (resource, params, options) {
+
+function findAll(resource, params, options) {
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
@@ -37,9 +37,10 @@ exports.findAll = function (resource, params, options) {
     }, reject);
   });
 
-};
+}
 
-exports.find = function (resource, id, options) {
+function find(resource, id, options) {
+
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
@@ -156,7 +157,7 @@ exports.find = function (resource, id, options) {
     });
 
   });
-};
+}
 
 function createOrUpdate(method, options) {
 
@@ -211,7 +212,7 @@ function createOrUpdate(method, options) {
   });
 }
 
-exports.create = function (resource, attrs, options) {
+function create(resource, attrs, options) {
 
   return createOrUpdate('POST', {
     resource: resource,
@@ -220,9 +221,9 @@ exports.create = function (resource, attrs, options) {
     headers: options.headers
   })
 
-};
+}
 
-exports.update = function (resource, id, attrs, options) {
+function update(resource, id, attrs, options) {
 
   return createOrUpdate('PUT', {
     resource: resource,
@@ -232,9 +233,9 @@ exports.update = function (resource, id, attrs, options) {
     headers: options.headers
   });
 
-};
+}
 
-exports.destroy = function (resource, id, options) {
+function destroy(resource, id, options) {
 
   return new Promise(function (resolve, reject) {
 
@@ -260,4 +261,5 @@ exports.destroy = function (resource, id, options) {
     }, reject);
 
   });
-};
+
+}
