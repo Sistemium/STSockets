@@ -201,7 +201,8 @@ function createOrUpdate(method, options) {
       if (objectXid && /.*\/RecordStatus$/i.test(options.resource) && isRemoved) {
         let org = _.first(options.resource.match(/[^\/]+\//)) || '';
         return destroy(org + name, objectXid, options.options)
-          .then(() => resolve(fromBackend.data));
+          .then(() => resolve(fromBackend.data))
+          .catch(() => resolve(fromBackend.data));
       }
 
       resolve(fromBackend.data);
