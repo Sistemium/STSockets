@@ -61,9 +61,11 @@ subscribeJsData(sales, [
   'dr50/SaleOrder', 'dr50/SaleOrderPosition',
   'dr50/RecordStatus',
   'dr50/Stock',
+  'dr50/Outlet',
   'r50/SaleOrder', 'r50/SaleOrderPosition',
   'r50/RecordStatus',
-  'r50/Stock'
+  'r50/Stock',
+  'r50/Outlet'
 ]);
 
 eventEmitter.on('remoteCommands', function (params) {
