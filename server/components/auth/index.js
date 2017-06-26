@@ -1,5 +1,7 @@
 'use strict';
 
+module.exports = authenticator;
+
 const request = require('request');
 const _ = require('lodash');
 
@@ -7,7 +9,6 @@ const debug = require('debug')('sts:auth');
 const config = require('../../config/environment');
 
 const tokens = {};
-
 
 function log401(url, token) {
   console.error('Not authorized token:', token, 'url:', url);
@@ -50,7 +51,7 @@ function getRoles(token, callback) {
 }
 
 
-module.exports = function (needRolesStringOrArray) {
+function authenticator(needRolesStringOrArray) {
 
   let needRoles = _.isString(needRolesStringOrArray) ? [needRolesStringOrArray] : needRolesStringOrArray;
 
@@ -74,19 +75,19 @@ module.exports = function (needRolesStringOrArray) {
     onAuthorized(tokens[token]);
 
 
-    function onAuthorized(token) {
+    function onAuthorized(auth) {
 
-      if (!token.roles) {
-        debug('onAuthorized', 'no roles', token);
+      if (!auth.roles) {
+        debug('onAuthorized', 'no roles', auth);
         return res.status(401).end('No auth data');
       }
 
       let hasRole = !needRoles || _.reduce(needRoles, function (accumulator, role) {
-          return accumulator || !!token.roles[role];
+          return accumulator || !!auth.roles[role];
         }, false);
 
       if (hasRole) {
-        req.auth = token;
+        req.auth = auth;
         next();
       } else {
         res.status(401).end('Need roles: ' + JSON.stringify(needRoles, null, 2));
@@ -113,4 +114,4 @@ module.exports = function (needRolesStringOrArray) {
 
   };
 
-};
+}
