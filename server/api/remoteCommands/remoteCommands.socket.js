@@ -78,19 +78,45 @@ eventEmitter.on('remoteCommands', function (params) {
 
 exports.register = register;
 exports.pushCommand = emitToDevice;
+exports.pushRequest = pushRequest;
 exports.list = list;
 
 
 function emitToDevice(deviceUUID, commands) {
 
-  let matchingSockets = _.filter(sockets, {deviceUUID: deviceUUID});
-
-  _.each(matchingSockets, function (socket) {
-    socket.emit('remoteCommands', commands);
-    console.info('remoteCommands deviceUUID:', deviceUUID, 'commands:', commands);
+  let matchingSocket = _.find(sockets, socket => {
+    return socket.deviceUUID === deviceUUID && !socket.destroyed;
   });
 
-  return matchingSockets.length;
+  if (!matchingSocket) {
+    return 0;
+  }
+
+  matchingSocket.emit('remoteCommands', commands);
+  console.info('remoteCommands deviceUUID:', deviceUUID, 'commands:', commands);
+
+  return 1;
+
+}
+
+function pushRequest(deviceUUID, requests) {
+
+  return new Promise(function(resolve, reject) {
+
+    // resolve('ok');
+
+    let matchingSocket = _.find(sockets, socket => {
+      return socket.deviceUUID === deviceUUID && !socket.destroyed;
+    });
+
+    if (!matchingSocket) {
+      reject('device not connected');
+    }
+
+    console.info('remoteRequest deviceUUID:', deviceUUID, 'requests:', requests);
+    matchingSocket.emit('remoteRequests', requests, response => resolve(response));
+
+  });
 
 }
 

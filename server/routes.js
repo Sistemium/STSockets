@@ -10,6 +10,7 @@ module.exports = function(app) {
 
   app.use('/api/drivers', require('./api/driver'));
   app.use('/api/remoteCommands', require('./api/remoteCommands'));
+  app.use('/api/remoteRequests', require('./api/remoteRequests'));
   app.use('/api/sockets', require('./api/session'));
   app.use('/api/jsData', require('./api/jsData'));
   app.use('/api/msg', require('./api/msg'));
