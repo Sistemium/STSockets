@@ -59,6 +59,10 @@ const all = {
 
   pha: {
     roles: process.env.PHA_ROLES || 'https://api.sistemium.com/pha/roles'
+  },
+
+  api: {
+    adminRoles: process.env.API_ADMIN_ROLES || 'admin'
   }
 
 };
