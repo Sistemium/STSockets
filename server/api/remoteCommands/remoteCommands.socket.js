@@ -49,7 +49,7 @@ const commandsData = {
  */
 
 subscribeFullSyncJsData('remoteCommands-' + uuid.v4(), [
-  'dev/PickingOrder', 'bs/PickingOrder',
+  'dev/PickingOrder', 'bs/PickingOrder'
 ]);
 
 const sales = {
@@ -102,8 +102,6 @@ function emitToDevice(deviceUUID, commands) {
 function pushRequest(deviceUUID, requests) {
 
   return new Promise(function(resolve, reject) {
-
-    // resolve('ok');
 
     let matchingSocket = _.find(sockets, socket => {
       return socket.deviceUUID === deviceUUID && !socket.destroyed;
@@ -200,7 +198,7 @@ function propagateToSisSales(event, data) {
 
   _.each(sockets, socket => {
 
-    if (agentBuild(socket) >= 301 && agentName(socket) === 'iSisSales' && socket.org === org) {
+    if (agentBuild(socket) >= 301 && agentBuild(socket) < 400 && agentName(socket) === 'iSisSales' && socket.org === org) {
 
       debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
 
