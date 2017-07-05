@@ -11,21 +11,29 @@ module.exports = makeRequest;
 function makeRequest(options, resolve, reject) {
 
   let result;
-  request(options, function (error, response, body) {
+
+  request(options, (error, response, body) => {
+
     if (error) {
+
       debug('Error occurred:', error);
+
       return reject({
         status: response && response.status || 500,
         text: body || 'Internal server error'
       });
+
     }
 
     if (response.statusCode >= 400) {
+
       console.error('makeRequest error', response.statusCode, options, response.body);
+
       return reject({
         status: response.statusCode,
         text: response.body
       });
+
     }
 
     if (response.statusCode === 204) {
@@ -54,6 +62,7 @@ function makeRequest(options, resolve, reject) {
       data: result,
       status: response.statusCode
     });
+
   });
 
 }

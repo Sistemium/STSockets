@@ -19,9 +19,11 @@ export {findAll, find, create, update, destroy};
 
 
 function findAll(resource, params, options) {
+
   let headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
+
     let opts = {
       qs: params,
       url: config.apiV4(resource),
@@ -35,6 +37,7 @@ function findAll(resource, params, options) {
       //debug('fromBackend', fromBackend);
       resolve(fromBackend);
     }, reject);
+
   });
 
 }
@@ -43,32 +46,56 @@ function find(resource, id, options) {
 
   let headers = _.pick(options.headers, config.headers);
 
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
+
     let hash = config.apiV4(resource);
+
     let opts = {
       url: hash + '/' + id,
       method: 'GET',
       headers: headers
     };
+
     let expireRedisAfter = config.redis.expireAfter;
 
     if (!headers.authorization) {
-      reject(
-        // 'Authorization required'
-        401
-      );
+      // 'Authorization required'
+      return reject(401);
     }
 
     if (!id) {
-      reject(
-        //'Find requires id',
-        400
-      );
+      //'Find requires id',
+      return reject(400);
     }
 
     let authorizedHash = `${options.authId || headers.authorization}#${hash}`;
     let hashId = hash + '#' + id;
     let minUts = Date.now() - expireRedisAfter;
+
+    redis.hgetAsync(authorizedHash, id)
+      .then(authData => {
+
+        if (authData && authData.uts > minUts) {
+
+          return redis.hgetAsync(hash, id)
+            .then(gotFromRedisOrBackend)
+            .catch((err) => {
+
+              console.error('jsData:find:redis:error', err);
+              debug('find:makeRequest', opts);
+
+              makeRequest(opts, fromBackend => {
+                resolve(fromBackend.data);
+              }, reject);
+
+            });
+
+        }
+
+        return getFromBackend();
+
+      })
+      .catch(reject);
 
     function getFromBackend() {
 
@@ -80,17 +107,22 @@ function find(resource, id, options) {
 
         pending = new Promise((resolvePending, rejectPending) => {
 
+          makeRequest(opts, onSuccess, rejectPending);
+
           function onSuccess(fromBackend) {
+
             if (fromBackend && fromBackend.data) {
+
               let authData = {
                 eTag: fromBackend.eTag,
                 uts: Date.now()
               };
 
-              redis.hsetAsync(authorizedHash, id, authData).then(function (reply) {
-                debug('hsetAsync:authorizedHash', reply, authorizedHash, id, fromBackend.eTag);
-                redis.redisClient.expire(authorizedHash, expireRedisAfter);
-              });
+              redis.hsetAsync(authorizedHash, id, authData)
+                .then(reply => {
+                  debug('hsetAsync:authorizedHash', reply, authorizedHash, id, fromBackend.eTag);
+                  redis.redisClient.expire(authorizedHash, expireRedisAfter);
+                });
 
               fromBackend.uts = Date.now();
               redis.hsetAsync(hash, id, fromBackend);
@@ -107,8 +139,6 @@ function find(resource, id, options) {
 
             }
           }
-
-          makeRequest(opts, onSuccess, rejectPending);
 
         });
 
@@ -130,31 +160,15 @@ function find(resource, id, options) {
     }
 
     function gotFromRedisOrBackend(inRedis) {
+
       if (inRedis && inRedis.data && inRedis.uts > minUts) {
         debug('find:redis', `${hashId} (${inRedis.uts})`);
-        resolve(inRedis.data);
-      } else {
-        getFromBackend();
+        return resolve(inRedis.data);
       }
+
+      getFromBackend();
+
     }
-
-    redis.hgetAsync(authorizedHash, id).then((authData) => {
-
-      if (authData && authData.uts > expireRedisAfter) {
-        return redis.hgetAsync(hash, id)
-          .then(gotFromRedisOrBackend)
-          .catch((err) => {
-            console.error('jsData:find:redis:error', err);
-            debug('find:makeRequest', opts);
-            makeRequest(opts, (fromBackend) => {
-              resolve(fromBackend.data);
-            }, reject);
-          });
-      } else {
-        return getFromBackend();
-      }
-
-    });
 
   });
 }

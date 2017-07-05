@@ -1,17 +1,15 @@
 'use strict';
 
 const debug = require('debug')('sts:jsData:socket');
-const _ = require('lodash');
-const uuid = require('node-uuid');
-const router = require('./jsData.socket.router');
+
+import _ from 'lodash';
+import uuid  from 'node-uuid';
+import router from './jsData.socket.router';
 
 const subscriptions = [];
 
 
-exports.emitEvent = emitEvent;
-exports.subscribe = subscribe;
-exports.unSubscribe = unSubscribe;
-exports.register = register;
+export {emitEvent, subscribe, unSubscribe, register};
 
 
 function emitEvent(method, resource, sourceSocketId) {
