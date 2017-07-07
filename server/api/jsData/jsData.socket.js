@@ -22,7 +22,7 @@ function emitEvent(method, resource, sourceSocketId) {
 
       if (_.includes(subscription.filter, resource)) {
 
-        authorizedForData(subscription,method,data,resource).then(() => {
+        authorizedForData(subscription,method,data,resource).then((responseData) => {
 
           let event = 'jsData:' + method;
           let socket = subscription.socket;
@@ -31,7 +31,7 @@ function emitEvent(method, resource, sourceSocketId) {
             debug('emitEvent:', event, 'id:', socket.id);
             socket.emit(event, {
               resource: resource,
-              data: _.pick(data, ['id', 'objectXid', 'ts'])
+              data: responseData
             });
           }
 
