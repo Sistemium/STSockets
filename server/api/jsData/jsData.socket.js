@@ -5,6 +5,7 @@ const debug = require('debug')('sts:jsData:socket');
 import _ from 'lodash';
 import uuid  from 'node-uuid';
 import router from './jsData.socket.router';
+const jsDataModel = require('./jsData.model');
 
 const subscriptions = [];
 
@@ -21,21 +22,56 @@ function emitEvent(method, resource, sourceSocketId) {
 
       if (_.includes(subscription.filter, resource)) {
 
-        let event = 'jsData:' + method;
-        let socket = subscription.socket;
+        authorizedForData(subscription,method,data,resource).then(() => {
 
-        if (socket.id !== sourceSocketId) {
-          debug('emitEvent:', event, 'id:', socket.id);
-          socket.emit(event, {
-            resource: resource,
-            data: _.pick(data, ['id', 'objectXid', 'ts'])
-          });
-        }
+          let event = 'jsData:' + method;
+          let socket = subscription.socket;
+
+          if (socket.id !== sourceSocketId) {
+            debug('emitEvent:', event, 'id:', socket.id);
+            socket.emit(event, {
+              resource: resource,
+              data: _.pick(data, ['id', 'objectXid', 'ts'])
+            });
+          }
+
+        }).catch(_.noop);
 
       }
 
     });
+
   };
+
+}
+
+function authorizedForData(subscription,method,data,resource) {
+
+  return new Promise(function (resolve, reject) {
+
+    let id = data.id;
+
+    if (_.isEqual(method,'update') && id){
+
+      let socket = subscription.socket;
+
+      let options = {
+        headers: {
+          authorization: socket.accessToken,
+          'x-return-post': true,
+          'user-agent': socket.userAgent
+        },
+        sourceSocketId: socket.id,
+        authId: _.get(socket, 'account.authId')
+      };
+
+      return jsDataModel.find(resource,id, options).then(resolve).catch(reject);
+
+    }
+
+    return resolve();
+
+  });
 
 }
 
