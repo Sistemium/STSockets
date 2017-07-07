@@ -198,7 +198,7 @@ function propagateToSisSales(event, data) {
 
   _.each(sockets, socket => {
 
-    if (agentBuild(socket) >= 301 && agentBuild(socket) < 400 && agentName(socket) === 'iSisSales' && socket.org === org) {
+    if (agentBuild(socket) >= 301 && agentBuild(socket) < 340 && agentName(socket) === 'iSisSales' && socket.org === org) {
 
       debug('propagateToSisSales', socket.org, agentName(socket), agentBuild(socket));
 
