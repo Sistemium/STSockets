@@ -69,7 +69,7 @@ function authorizedForData(subscription,method,data,resource) {
 
     }
 
-    return resolve();
+    return resolve(data);
 
   });
 

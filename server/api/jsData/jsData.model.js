@@ -4,7 +4,7 @@ import LRU from 'lru-cache';
 import config from '../../config/environment';
 import makeRequest from './makeRequest';
 import redis from '../../config/redis';
-import sockets from './jsData.socket';
+import {emitEvent} from './jsData.socket';
 
 const debug = require('debug')('sts:jsData.model');
 
@@ -269,7 +269,7 @@ function destroy(resource, id, options) {
     };
 
     makeRequest(opts, () => {
-      sockets.emitEvent('destroy', resource, options.sourceSocketId)({
+      emitEvent('destroy', resource, options.sourceSocketId)({
         id: id
       });
       redis.hdelAsync(hash, id);
