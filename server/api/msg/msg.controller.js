@@ -43,6 +43,7 @@ exports.create = function (req, res, next) {
         id: msg.resourceId,
         ts: msg.resourceTs
       });
+      return null;
     })
     .catch(next);
 
