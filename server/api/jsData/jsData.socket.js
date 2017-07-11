@@ -22,20 +22,22 @@ function emitEvent(method, resource, sourceSocketId) {
 
       if (_.includes(subscription.filter, resource)) {
 
-        authorizedForData(subscription,method,data,resource).then((responseData) => {
+        authorizedForData(subscription, method, data, resource)
+          .then((responseData) => {
 
-          let event = 'jsData:' + method;
-          let socket = subscription.socket;
+            let event = 'jsData:' + method;
+            let socket = subscription.socket;
 
-          if (socket.id !== sourceSocketId) {
-            debug('emitEvent:', event, 'id:', socket.id);
-            socket.emit(event, {
-              resource: resource,
-              data: responseData
-            });
-          }
+            if (socket.id !== sourceSocketId) {
+              debug('emitEvent:', event, 'id:', socket.id);
+              socket.emit(event, {
+                resource: resource,
+                data: responseData
+              });
+            }
 
-        }).catch(_.noop);
+          })
+          .catch(_.noop);
 
       }
 
@@ -45,13 +47,13 @@ function emitEvent(method, resource, sourceSocketId) {
 
 }
 
-function authorizedForData(subscription,method,data,resource) {
+function authorizedForData(subscription, method, data, resource) {
 
   return new Promise(function (resolve, reject) {
 
     let id = data.id;
 
-    if (_.isEqual(method,'update') && id){
+    if (_.isEqual(method, 'update') && id) {
 
       let socket = subscription.socket;
 
@@ -65,7 +67,9 @@ function authorizedForData(subscription,method,data,resource) {
         authId: _.get(socket, 'account.authId')
       };
 
-      return jsDataModel.find(resource,id, options).then(resolve).catch(reject);
+      return jsDataModel.find(resource, id, options)
+        .then(resolve)
+        .catch(reject);
 
     }
 
