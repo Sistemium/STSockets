@@ -6,11 +6,13 @@ import _ from 'lodash';
 import uuid  from 'node-uuid';
 import router from './jsData.socket.router';
 const jsDataModel = require('./jsData.model');
+const config = require('../../config/environment');
+const {globalToken} = config;
 
 const subscriptions = [];
 
 
-export {emitEvent, subscribe, unSubscribe, register};
+export {emitEvent, subscribe, unSubscribe, register, authorizedForData};
 
 
 function emitEvent(method, resource, sourceSocketId) {
@@ -18,12 +20,39 @@ function emitEvent(method, resource, sourceSocketId) {
   debug('emitEvent:', method, resource);
 
   return (data) => {
-    _.each(subscriptions, function (subscription) {
+
+    let pool = _.head(resource.split('/'));
+
+    let accessToken = globalToken(pool);
+
+    if (!accessToken) {
+      return emitToSubscribers(data);
+    }
+
+    let adminSocket = {socket: {accessToken}};
+
+    authorizedForData(adminSocket, method, data, resource)
+      .then(emitToSubscribers)
+      .catch(err => {
+        console.error(err);
+      });
+
+  };
+
+  function emitToSubscribers(data) {
+
+    _.each(subscriptions, subscription => {
 
       if (_.includes(subscription.filter, resource)) {
 
-        authorizedForData(subscription, method, data, resource)
-          .then((responseData) => {
+        let authorization = authorizedForData;
+
+        if (subscription.socket.jsDataAuth) {
+          authorization = subscription.socket.jsDataAuth[resource];
+        }
+
+        authorization(subscription, method, data, resource)
+          .then(data => {
 
             let event = 'jsData:' + method;
             let socket = subscription.socket;
@@ -32,7 +61,7 @@ function emitEvent(method, resource, sourceSocketId) {
               debug('emitEvent:', event, 'id:', socket.id);
               socket.emit(event, {
                 resource: resource,
-                data: responseData
+                data: data
               });
             }
 
@@ -43,7 +72,7 @@ function emitEvent(method, resource, sourceSocketId) {
 
     });
 
-  };
+  }
 
 }
 
