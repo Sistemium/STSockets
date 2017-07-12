@@ -15,6 +15,9 @@ const rolesUrl = config.pha.roles;
 
 const eventEmitter = new events.EventEmitter();
 
+const authEmitter = require('../auth/emitter');
+
+
 const liveSearchData = {};
 
 eventEmitter.on('api:data', function (data) {
@@ -65,6 +68,8 @@ function sockDataRegister(socket, ack) {
       socket.touch();
 
       register(socket);
+
+      authEmitter.emit(`${socket.org}/auth`, socket);
 
       ack(true);
 
