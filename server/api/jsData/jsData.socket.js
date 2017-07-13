@@ -12,79 +12,93 @@ const {globalToken} = config;
 const subscriptions = [];
 
 
-export {emitEvent, subscribe, unSubscribe, register, authorizedForData};
+export {emitEvent, subscribe, unSubscribe, register};
 
 
 function emitEvent(method, resource, sourceSocketId) {
 
   debug('emitEvent:', method, resource);
 
-  return (data) => {
+  return data => {
 
     let pool = _.head(resource.split('/'));
 
     let accessToken = globalToken(pool);
 
     if (!accessToken) {
-      return emitToSubscribers(data);
+      return emitToSubscribers(method, resource, sourceSocketId)(data);
     }
 
-    let adminSocket = {socket: {accessToken}};
+    let adminSocket = {accessToken};
 
-    authorizedForData(adminSocket, method, data, resource)
-      .then(emitToSubscribers)
+    authorizedForData(data, adminSocket, method, resource)
+      .then(emitToSubscribers(method, resource, sourceSocketId))
       .catch(err => {
         console.error(err);
       });
 
   };
 
-  function emitToSubscribers(data) {
+}
 
+function emitToSubscribers(method, resource, sourceSocketId) {
+
+  return data => {
     _.each(subscriptions, subscription => {
 
       if (_.includes(subscription.filter, resource)) {
 
-        let authorization = authorizedForData;
+        let pluginAuthorization = _.get(subscription,`socket.jsDataAuth.${resource}`);
 
-        if (subscription.socket.jsDataAuth) {
-          authorization = subscription.socket.jsDataAuth[resource];
+        if (pluginAuthorization) {
+
+          let response = pluginAuthorization(subscription, method, data, resource);
+
+
+          if (_.isEqual(response, 'authorized')) {
+            return emitToSocket(subscription.socket, method, resource, sourceSocketId)(data);
+          }
+
+          if (_.isEqual(response, 'not authorized')) {
+            return;
+          }
+
         }
 
-        authorization(subscription, method, data, resource)
-          .then(data => {
-
-            let event = 'jsData:' + method;
-            let socket = subscription.socket;
-
-            if (socket.id !== sourceSocketId) {
-              debug('emitEvent:', event, 'id:', socket.id);
-              socket.emit(event, {
-                resource: resource,
-                data: data
-              });
-            }
-
-          })
+        authorizedForData(data, subscription.socket, method, resource)
+          .then(emitToSocket(subscription.socket, sourceSocketId, resource))
           .catch(_.noop);
 
       }
 
     });
-
   }
 
 }
 
-function authorizedForData(subscription, method, data, resource) {
+function emitToSocket(socket, method, resource, sourceSocketId) {
+
+  return data => {
+    let event = 'jsData:' + method;
+
+    if (socket.id !== sourceSocketId) {
+      debug('emitEvent:', event, 'id:', socket.id);
+      socket.emit(event, {
+        resource: resource,
+        data: data
+      });
+    }
+  }
+
+}
+
+function authorizedForData(data, socket, method, resource) {
 
   return new Promise(function (resolve, reject) {
 
     let id = data.id;
 
     if (_.isEqual(method, 'update') && id) {
-
-      let socket = subscription.socket;
 
       let options = {
         headers: {
