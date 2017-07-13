@@ -65,7 +65,7 @@ const all = {
     adminRoles: process.env.API_ADMIN_ROLES || 'admin'
   },
 
-  plugins: process.env.PLUGINS_PATH || '/server/config/plugins',
+  plugins: process.env.PLUGINS_PATH,
 
   globalToken: function(pool) {
     let key = `${pool.toUpperCase()}_AUTH`;
