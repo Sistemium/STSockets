@@ -6,13 +6,20 @@ module.exports = loader;
 
 const config = require('./environment');
 const pluginsDir = config.plugins;
-const root = config.root;
 const fs = require('fs');
+const jsDataModel = require('../api/jsData/jsData.model');
+const emitter = require('../components/auth/emitter');
 
 function loader() {
 
-  fs.readdirSync(root+pluginsDir).forEach(file => {
-    require(root+pluginsDir + '/' + file)();
-  })
+  let pluginData = {
+    jsDataModel : jsDataModel,
+    emitter : emitter
+  };
+
+  fs.readdirSync(pluginsDir)
+    .forEach(file => {
+      require(`${pluginsDir}/${file}`)(pluginData);
+    })
 
 }
