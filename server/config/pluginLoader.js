@@ -12,6 +12,8 @@ const emitter = require('../components/auth/emitter');
 
 function loader() {
 
+  if (!pluginsDir) return;
+
   let pluginData = {
     jsDataModel : jsDataModel,
     emitter : emitter
