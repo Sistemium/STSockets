@@ -11,9 +11,6 @@ let plugins = gulpLoadPlugins();
  ********************/
 
 export default {
-  lintClientScripts: lazypipe()
-    .pipe(plugins.jshint, `${paths.clientPath}/.jshintrc`)
-    .pipe(plugins.jshint.reporter, 'jshint-stylish'),
 
   lintServerScripts: lazypipe()
     .pipe(plugins.jshint, `${paths.serverPath}/.jshintrc`)
@@ -22,19 +19,6 @@ export default {
   lintServerTestScripts: lazypipe()
     .pipe(plugins.jshint, `${paths.serverPath}/.jshintrc-spec`)
     .pipe(plugins.jshint.reporter, 'jshint-stylish'),
-
-  styles: lazypipe()
-    .pipe(plugins.sourcemaps.init)
-    .pipe(plugins.sass)
-    .pipe(plugins.autoprefixer, {browsers: ['last 1 version']})
-    .pipe(plugins.sourcemaps.write, '.'),
-
-  transpileClient: lazypipe()
-    .pipe(plugins.sourcemaps.init)
-    .pipe(plugins.babel, {
-      optional: ['es7.classProperties']
-    })
-    .pipe(plugins.sourcemaps.write, '.'),
 
   transpileServer: lazypipe()
     .pipe(plugins.sourcemaps.init)

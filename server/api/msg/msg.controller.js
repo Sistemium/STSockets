@@ -57,8 +57,6 @@ exports.post = function (req, res, next) {
     data = [data];
   }
 
-  //debug ('post', data);
-
   async.eachSeries(data, (msg, done) => {
 
     processObject(msg)
