@@ -21,7 +21,7 @@ export default {
     .pipe(plugins.jshint.reporter, 'jshint-stylish'),
 
   transpileServer: lazypipe()
-    .pipe(plugins.sourcemaps.init)
+    // .pipe(plugins.sourcemaps.init)
     .pipe(plugins.babel, {
       optional: ['runtime']
     })
