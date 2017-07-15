@@ -104,7 +104,7 @@ function authorizedForData(data, socket, method, resource) {
         headers: {
           authorization: socket.accessToken,
           'x-return-post': true,
-          'user-agent': socket.userAgent
+          'user-agent': socket.userAgent || 'STSockets'
         },
         sourceSocketId: socket.id,
         authId: _.get(socket, 'account.authId')
