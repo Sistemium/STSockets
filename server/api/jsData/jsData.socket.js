@@ -66,7 +66,7 @@ function emitToSubscribers(method, resource, sourceSocketId) {
         }
 
         authorizedForData(data, subscription.socket, method, resource)
-          .then(emitToSocket(subscription.socket, sourceSocketId, resource))
+          .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
           .catch(_.noop);
 
       }
