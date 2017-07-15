@@ -11,14 +11,9 @@ gulp.task('watch', () => {
 
   const testFiles = _.union(paths.server.test.unit, paths.server.test.integration);
 
-  // plugins.livereload.listen({
-  //   port: process.env.LIVERELOAD_PORT || 35729
-  // });
-
   plugins.watch(_.union(paths.server.scripts, testFiles))
     .pipe(plugins.plumber())
     .pipe(pipes.lintServerScripts());
-    // .pipe(plugins.livereload());
 
   gulp.watch('gulpfile.js', ['gulp-reload']);
 

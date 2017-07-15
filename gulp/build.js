@@ -8,8 +8,6 @@ import del from 'del';
 import _ from 'lodash';
 import runSequence from 'run-sequence';
 
-let plugins = gulpLoadPlugins();
-
 /********************
  * Build
  ********************/
