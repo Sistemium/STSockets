@@ -9,3 +9,4 @@ dist
 webstorm
 *.log
 wallaby.js
+server/config/plugins

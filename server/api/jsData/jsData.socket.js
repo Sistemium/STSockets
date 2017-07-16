@@ -46,30 +46,29 @@ function emitToSubscribers(method, resource, sourceSocketId) {
   return data => {
     _.each(subscriptions, subscription => {
 
-      if (_.includes(subscription.filter, resource)) {
+      if (!_.includes(subscription.filter, resource)) {
+        return;
+      }
 
-        let pluginAuthorization = _.get(subscription,`socket.jsDataAuth.${resource}`);
+      let pluginAuthorization = _.get(subscription, `socket.jsDataAuth.${resource}`);
 
-        if (pluginAuthorization) {
+      if (pluginAuthorization) {
 
-          let response = pluginAuthorization(subscription, method, data, resource);
+        let authorized = pluginAuthorization(subscription, method, data, resource);
 
-
-          if (_.isEqual(response, 'authorized')) {
-            return emitToSocket(subscription.socket, method, resource, sourceSocketId)(data);
-          }
-
-          if (_.isEqual(response, 'not authorized')) {
-            return;
-          }
-
+        if (authorized === true) {
+          return emitToSocket(subscription.socket, method, resource, sourceSocketId)(data);
         }
 
-        authorizedForData(data, subscription.socket, method, resource)
-          .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
-          .catch(_.noop);
+        if (authorized === false) {
+          return;
+        }
 
       }
+
+      authorizedForData(data, subscription.socket, method, resource)
+        .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
+        .catch(_.noop);
 
     });
   }
