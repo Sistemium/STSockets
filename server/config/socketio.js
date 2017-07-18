@@ -13,6 +13,7 @@ const remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socke
 const sockData = require('../components/sockData');
 const session = require('../api/session/session.controller');
 const jsDataSocket = require('../api/jsData/jsData.socket');
+const authorizationForSocket = require('../components/auth').authorizationForSocket;
 
 import {agentName, agentBuild} from '../components/util';
 
@@ -38,10 +39,11 @@ function onConnect(socket) {
 
   session.register(socket);
 
-  socket.on ('authorization', onAuthorizationCallback(socket));
+  socket.on('authorization', onAuthorizationCallback(socket));
 
-  socket.on('info', (data,clientAck) => {
-    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
+  socket.on('info', (data, clientAck) => {
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {
+    };
 
     ack((new Date()).toISOString());
 
@@ -98,7 +100,16 @@ function onAuthorizationCallback(socket) {
 
       } else {
 
-        ack({isAuthorized: true});
+        authorizationForSocket(socket)
+          .then(authorized => {
+            ack({isAuthorized: !!authorized});
+          })
+          .catch(error => {
+            if (error) {
+              console.error(error);
+            }
+            ack({error: error});
+          });
 
       }
 
@@ -121,8 +132,8 @@ function config(socketIO) {
   socketIO.on('connection', function (socket) {
 
     socket.address = socket.handshake.address !== null ?
-            socket.handshake.address.address + ':' + socket.handshake.address.port :
-            process.env.DOMAIN;
+    socket.handshake.address.address + ':' + socket.handshake.address.port :
+      process.env.DOMAIN;
 
     socket.connectedAt = new Date();
 
