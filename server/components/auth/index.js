@@ -1,12 +1,13 @@
 'use strict';
 
-module.exports = authenticator;
+module.exports = {authenticator, authorizationForSocket};
 
 const request = require('request');
 const _ = require('lodash');
 
 const debug = require('debug')('sts:auth');
 const config = require('../../config/environment');
+const authEmitter = require('../auth/emitter');
 
 const tokens = {};
 
@@ -14,6 +15,24 @@ function log401(url, token) {
   console.error('Not authorized token:', token, 'url:', url);
 }
 
+function authorizationForSocket(socket) {
+
+  return new Promise(function (resolve, reject) {
+
+    return getRoles(socket.accessToken, auth => {
+
+      if (auth || auth === false) {
+        authEmitter.emit(`${socket.org}/auth`, socket);
+        return resolve(auth);
+      }
+
+      reject('Authorization error');
+
+    });
+
+  });
+
+}
 
 function getRoles(token, callback) {
 
@@ -39,10 +58,16 @@ function getRoles(token, callback) {
 
     } else {
 
-      // TODO: catch 401
+      if (response.statusCode === 403) {
 
-      console.error('Authorization error token:', token, 'status:', response.statusCode);
-      callback(false);
+        console.error('Authorization error token:', token, 'status:', response.statusCode);
+        callback(false);
+
+      } else {
+
+        callback();
+
+      }
 
     }
 

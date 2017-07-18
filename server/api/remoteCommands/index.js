@@ -5,7 +5,7 @@ const controller = require('./remoteCommands.controller');
 
 const router = express.Router();
 const config = require('../../config/environment');
-const auth = require('../../components/auth');
+const auth = require('../../components/auth').authenticator;
 const allowOnlyForAdmin = auth(config.api.adminRoles);
 
 
