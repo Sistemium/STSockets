@@ -7,6 +7,8 @@ import uuid  from 'node-uuid';
 import router from './jsData.socket.router';
 const jsDataModel = require('./jsData.model');
 const config = require('../../config/environment');
+const when = require('when');
+
 const {globalToken} = config;
 
 const subscriptions = [];
@@ -54,15 +56,22 @@ function emitToSubscribers(method, resource, sourceSocketId) {
 
       if (pluginAuthorization) {
 
-        let authorized = pluginAuthorization(subscription, method, data, resource);
+        when(pluginAuthorization(subscription, method, data, resource))
+          .then(authorized => {
 
-        if (authorized === true) {
-          return emitToSocket(subscription.socket, method, resource, sourceSocketId)(data);
-        }
+          if (authorized === true) {
+            return emitToSocket(subscription.socket, method, resource, sourceSocketId)(data);
+          }
 
-        if (authorized === false) {
-          return;
-        }
+          if (authorized === false) {
+            return;
+          }
+
+          authorizedForData(data, subscription.socket, method, resource)
+            .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
+            .catch(_.noop);
+
+        });
 
       }
 
