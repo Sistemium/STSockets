@@ -21,8 +21,22 @@ function authorizationForSocket(socket) {
 
     return getRoles(socket.accessToken, auth => {
 
+      if (auth) {
+
+        let {org, code} = auth.account;
+
+        // TODO: check if we need to inject any other properties into the socket
+
+        socket.org = org;
+        socket.userId = code;
+
+        debug('success:', org, code);
+
+        authEmitter.emit(`${org}/auth`, socket);
+
+      }
+
       if (auth || auth === false) {
-        authEmitter.emit(`${socket.org}/auth`, socket);
         return resolve(auth);
       }
 
