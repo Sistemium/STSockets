@@ -14,14 +14,15 @@ function loader() {
 
   if (!pluginsDir) return;
 
-  let pluginData = {
-    jsDataModel : jsDataModel,
-    emitter : emitter
+  let context = {
+    jsDataModel,
+    emitter,
+    config
   };
 
   fs.readdirSync(pluginsDir)
     .forEach(file => {
-      require(`${pluginsDir}/${file}`)(pluginData);
+      require(`${pluginsDir}/${file}`)(context);
     })
 
 }
