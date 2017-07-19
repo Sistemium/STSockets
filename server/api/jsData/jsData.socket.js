@@ -59,25 +59,29 @@ function emitToSubscribers(method, resource, sourceSocketId) {
         when(pluginAuthorization(subscription, method, data, resource))
           .then(authorized => {
 
-          if (authorized === true) {
-            return emitToSocket(subscription.socket, method, resource, sourceSocketId)(data);
-          }
+            // debug('pluginAuthorization', subscription.socket.userId, method, resource, authorized);
 
-          if (authorized === false) {
-            return;
-          }
+            if (authorized === true) {
+              return emitToSocket(subscription.socket, method, resource, sourceSocketId)(data);
+            }
 
-          authorizedForData(data, subscription.socket, method, resource)
-            .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
-            .catch(_.noop);
+            if (authorized === false) {
+              return;
+            }
 
-        });
+            authorizedForData(data, subscription.socket, method, resource)
+              .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
+              .catch(_.noop);
+
+          });
+
+      } else {
+
+        authorizedForData(data, subscription.socket, method, resource)
+          .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
+          .catch(_.noop);
 
       }
-
-      authorizedForData(data, subscription.socket, method, resource)
-        .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
-        .catch(_.noop);
 
     });
   }
