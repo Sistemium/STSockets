@@ -4,13 +4,19 @@
 
 'use strict';
 
+module.exports = config;
+
+import _ from 'lodash';
+
 const statusSocket = require('../api/status/status.socket');
 const remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
 const sockData = require('../components/sockData');
 const session = require('../api/session/session.controller');
 const jsDataSocket = require('../api/jsData/jsData.socket');
+const authorizationForSocket = require('../components/auth').authorizationForSocket;
 
 import {agentName, agentBuild} from '../components/util';
+
 
 function onDisconnect(socket) {
 
@@ -33,14 +39,28 @@ function onConnect(socket) {
 
   session.register(socket);
 
-  socket.on ('authorization', function (data,clientAck){
+  socket.on('authorization', onAuthorizationCallback(socket));
 
-    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
+  socket.on('info', (data, clientAck) => {
+    let ack = (typeof clientAck === 'function') ? clientAck : function () {
+    };
+
+    ack((new Date()).toISOString());
+
+    console.info('info:', 'userId:', socket.userId, 'deviceUUID:', socket.deviceUUID, 'data:', JSON.stringify(data));
+  });
+
+}
+
+
+function onAuthorizationCallback(socket) {
+
+  return (data, clientAck) => {
+
+    let ack = _.isFunction(clientAck) ? clientAck : _.noop;
 
     if (!data) {
-      return ack({
-        isAuthorized: false
-      });
+      return ack({isAuthorized: false});
     }
 
     if (data.bundleIdentifier && data.appVersion) {
@@ -57,56 +77,63 @@ function onConnect(socket) {
     }
 
     if ((socket.isAuthorized = !!data.accessToken)) {
+
       socket.accessToken = data.accessToken;
 
       jsDataSocket.register(socket);
+
       if (data.deviceUUID) {
 
         socket.deviceUUID = data.deviceUUID;
         socket.deviceInfo = data;
 
-        sockData.register(socket,function(res){
+        sockData.register(socket, res => {
+
           if (res) {
-            //driverSocket.register(socket);
             statusSocket.register(socket);
             remoteCommandsSocket.register(socket);
           }
-          ack({
-            isAuthorized: !!res
-          });
+
+          ack({isAuthorized: !!res});
+
         });
+
       } else {
-        ack({
-          isAuthorized: true
-        });
+
+        authorizationForSocket(socket)
+          .then(authorized => {
+            ack({isAuthorized: !!authorized});
+          })
+          .catch(error => {
+            if (error) {
+              console.error(error);
+            }
+            ack({error: error});
+          });
+
       }
 
     } else {
+
       delete socket.accessToken;
       delete socket.userId;
-      ack({
-        isAuthorized: false
-      });
+
+      ack({isAuthorized: false});
+
     }
 
-  });
-
-  socket.on('info', function (data,clientAck) {
-    let ack = (typeof clientAck === 'function') ? clientAck : function () {};
-
-    ack((new Date()).toISOString());
-
-    console.info('info:', 'userId:', socket.userId, 'deviceUUID:', socket.deviceUUID, 'data:', JSON.stringify(data));
-  });
+  };
 
 }
 
-module.exports = function (socketio) {
 
-  socketio.on('connection', function (socket) {
+function config(socketIO) {
+
+  socketIO.on('connection', function (socket) {
+
     socket.address = socket.handshake.address !== null ?
-            socket.handshake.address.address + ':' + socket.handshake.address.port :
-            process.env.DOMAIN;
+    socket.handshake.address.address + ':' + socket.handshake.address.port :
+      process.env.DOMAIN;
 
     socket.connectedAt = new Date();
 
@@ -118,4 +145,4 @@ module.exports = function (socketio) {
 
   });
 
-};
+}

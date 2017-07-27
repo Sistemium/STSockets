@@ -43,6 +43,7 @@ exports.create = function (req, res, next) {
         id: msg.resourceId,
         ts: msg.resourceTs
       });
+      return null;
     })
     .catch(next);
 
@@ -55,8 +56,6 @@ exports.post = function (req, res, next) {
   if (!_.isArray(data)) {
     data = [data];
   }
-
-  //debug ('post', data);
 
   async.eachSeries(data, (msg, done) => {
 
