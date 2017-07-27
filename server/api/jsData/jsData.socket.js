@@ -1,43 +1,136 @@
 'use strict';
 
 const debug = require('debug')('sts:jsData:socket');
-const _ = require('lodash');
-const uuid = require('node-uuid');
-const router = require('./jsData.socket.router');
+
+import _ from 'lodash';
+import uuid  from 'node-uuid';
+import router from './jsData.socket.router';
+const jsDataModel = require('./jsData.model');
+const config = require('../../config/environment');
+const when = require('when');
+
+const {globalToken} = config;
 
 const subscriptions = [];
 
 
-exports.emitEvent = emitEvent;
-exports.subscribe = subscribe;
-exports.unSubscribe = unSubscribe;
-exports.register = register;
+export {emitEvent, subscribe, unSubscribe, register};
 
 
 function emitEvent(method, resource, sourceSocketId) {
 
   debug('emitEvent:', method, resource);
 
-  return (data) => {
-    _.each(subscriptions, function (subscription) {
+  return data => {
 
-      if (_.includes(subscription.filter, resource)) {
+    let pool = _.head(resource.split('/'));
 
-        let event = 'jsData:' + method;
-        let socket = subscription.socket;
+    let accessToken = globalToken(pool);
 
-        if (socket.id !== sourceSocketId) {
-          debug('emitEvent:', event, 'id:', socket.id);
-          socket.emit(event, {
-            resource: resource,
-            data: _.pick(data, ['id', 'objectXid', 'ts'])
+    if (!accessToken) {
+      return emitToSubscribers(method, resource, sourceSocketId)(data);
+    }
+
+    let adminSocket = {accessToken};
+
+    authorizedForData(data, adminSocket, method, resource)
+      .then(emitToSubscribers(method, resource, sourceSocketId))
+      .catch(err => {
+        console.error(err);
+      });
+
+  };
+
+}
+
+function emitToSubscribers(method, resource, sourceSocketId) {
+
+  return data => {
+    _.each(subscriptions, subscription => {
+
+      if (!_.includes(subscription.filter, resource)) {
+        return;
+      }
+
+      let pluginAuthorization = _.get(subscription, `socket.jsDataAuth.${resource}`);
+
+      if (pluginAuthorization) {
+
+        when(pluginAuthorization(subscription, method, data, resource))
+          .then(authorized => {
+
+            // debug('pluginAuthorization', subscription.socket.userId, method, resource, authorized);
+
+            if (authorized === true) {
+              return emitToSocket(subscription.socket, method, resource, sourceSocketId)(data);
+            }
+
+            if (authorized === false) {
+              return;
+            }
+
+            authorizedForData(data, subscription.socket, method, resource)
+              .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
+              .catch(_.noop);
+
           });
-        }
+
+      } else {
+
+        authorizedForData(data, subscription.socket, method, resource)
+          .then(emitToSocket(subscription.socket, method, resource, sourceSocketId))
+          .catch(_.noop);
 
       }
 
     });
-  };
+  }
+
+}
+
+function emitToSocket(socket, method, resource, sourceSocketId) {
+
+  return data => {
+    let event = 'jsData:' + method;
+
+    if (socket.id !== sourceSocketId) {
+      debug('emitEvent:', event, 'id:', socket.id);
+      socket.emit(event, {
+        resource: resource,
+        data: data
+      });
+    }
+  }
+
+}
+
+function authorizedForData(data, socket, method, resource) {
+
+  return new Promise(function (resolve, reject) {
+
+    let id = data.id;
+
+    if (_.isEqual(method, 'update') && id) {
+
+      let options = {
+        headers: {
+          authorization: socket.accessToken,
+          'x-return-post': true,
+          'user-agent': socket.userAgent || 'STSockets'
+        },
+        sourceSocketId: socket.id,
+        authId: _.get(socket, 'account.authId')
+      };
+
+      return jsDataModel.find(resource, id, options)
+        .then(resolve)
+        .catch(reject);
+
+    }
+
+    return resolve(data);
+
+  });
 
 }
 

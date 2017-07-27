@@ -1,18 +1,52 @@
 'use strict';
 
+module.exports = {authenticator, authorizationForSocket};
+
 const request = require('request');
 const _ = require('lodash');
 
 const debug = require('debug')('sts:auth');
 const config = require('../../config/environment');
+const authEmitter = require('../auth/emitter');
 
 const tokens = {};
-
 
 function log401(url, token) {
   console.error('Not authorized token:', token, 'url:', url);
 }
 
+function authorizationForSocket(socket) {
+
+  return new Promise(function (resolve, reject) {
+
+    return getRoles(socket.accessToken, auth => {
+
+      if (auth) {
+
+        let {org, code} = auth.account;
+
+        // TODO: check if we need to inject any other properties into the socket
+
+        socket.org = org;
+        socket.userId = code;
+
+        debug('success:', org, code);
+
+        authEmitter.emit(`${org}/auth`, socket);
+
+      }
+
+      if (auth || auth === false) {
+        return resolve(auth);
+      }
+
+      reject('Authorization error');
+
+    });
+
+  });
+
+}
 
 function getRoles(token, callback) {
 
@@ -38,10 +72,16 @@ function getRoles(token, callback) {
 
     } else {
 
-      // TODO: catch 401
+      if (response.statusCode === 403) {
 
-      console.error('Authorization error token:', token, 'status:', response.statusCode);
-      callback(false);
+        console.error('Authorization error token:', token, 'status:', response.statusCode);
+        callback(false);
+
+      } else {
+
+        callback();
+
+      }
 
     }
 
@@ -50,7 +90,7 @@ function getRoles(token, callback) {
 }
 
 
-module.exports = function (needRolesStringOrArray) {
+function authenticator(needRolesStringOrArray) {
 
   let needRoles = _.isString(needRolesStringOrArray) ? [needRolesStringOrArray] : needRolesStringOrArray;
 
@@ -74,19 +114,19 @@ module.exports = function (needRolesStringOrArray) {
     onAuthorized(tokens[token]);
 
 
-    function onAuthorized(token) {
+    function onAuthorized(auth) {
 
-      if (!token.roles) {
-        debug('onAuthorized', 'no roles', token);
+      if (!auth.roles) {
+        debug('onAuthorized', 'no roles', auth);
         return res.status(401).end('No auth data');
       }
 
       let hasRole = !needRoles || _.reduce(needRoles, function (accumulator, role) {
-          return accumulator || !!token.roles[role];
+          return accumulator || !!auth.roles[role];
         }, false);
 
       if (hasRole) {
-        req.auth = token;
+        req.auth = auth;
         next();
       } else {
         res.status(401).end('Need roles: ' + JSON.stringify(needRoles, null, 2));
@@ -113,4 +153,4 @@ module.exports = function (needRolesStringOrArray) {
 
   };
 
-};
+}

@@ -30,6 +30,7 @@ const socketio = require('socket.io')(server, {
 require('./config/socketio')(socketio);
 require('./config/express')(app);
 require('./config/redis').config(app);
+require('./config/pluginLoader')();
 require('./routes')(app);
 
 // Start server
