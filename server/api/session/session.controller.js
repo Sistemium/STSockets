@@ -27,6 +27,7 @@ function socketData(socket) {
     account: socket.account,
     lastStatus: socket.lastStatus,
     ts: socket.ts,
+    cts:socket.connectedAt,
     deviceInfo: di
   };
 }
