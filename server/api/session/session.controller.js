@@ -122,6 +122,18 @@ exports.register = function (socket) {
     }
   });
 
+  socket.on('session:state:findAll', function (ack) {
+    console.log('session:state:findAll id:', socket.id);
+    let data = _.map(sockets,function (socket) {
+      return socketData(socket);
+    });
+    if (typeof ack === 'function') {
+      ack({
+        data
+      });
+    }
+  });
+
   socket.touch();
 
 };
