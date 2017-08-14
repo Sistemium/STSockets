@@ -6,6 +6,7 @@ const debug = require('debug')('sts:session.controller');
 
 const sockData = require('../../components/sockData');
 const statusSocket = require('../../api/status/status.socket');
+const pushRequest = require('../remoteCommands/remoteCommands.socket').pushRequest;
 
 const ee = new events.EventEmitter();
 const sockets = [];
@@ -27,7 +28,7 @@ function socketData(socket) {
     account: socket.account,
     lastStatus: socket.lastStatus,
     ts: socket.ts,
-    cts:socket.connectedAt,
+    cts: socket.connectedAt,
     deviceInfo: di
   };
 }
@@ -124,7 +125,7 @@ exports.register = function (socket) {
 
   socket.on('session:state:findAll', function (ack) {
     console.log('session:state:findAll id:', socket.id);
-    let data = _.map(sockets,function (socket) {
+    let data = _.map(sockets, function (socket) {
       return socketData(socket);
     });
     if (typeof ack === 'function') {
@@ -132,6 +133,20 @@ exports.register = function (socket) {
         data
       });
     }
+  });
+
+  socket.on('device:pushRequest', function (deviceUUID, request, ack) {
+
+    pushRequest(deviceUUID,request).then(response =>{
+
+      ack(response);
+
+    }).catch(error => {
+
+      ack({error});
+
+    });
+
   });
 
   socket.touch();
