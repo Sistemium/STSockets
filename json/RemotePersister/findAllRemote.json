@@ -1,0 +1,8 @@
+{
+  "STMRemotePersisterController": {
+    "findAllRemote:": {
+      "entityName": "STMArticlePicture",
+      "predicateFormat": "(href != nil) AND (thumbnailPath == nil)"
+    }
+  }
+}
