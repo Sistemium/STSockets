@@ -19,16 +19,18 @@ function authorizationForSocket(socket) {
 
   return new Promise(function (resolve, reject) {
 
-    return getRoles(socket.accessToken, auth => {
+    return getRoles(socket, auth => {
 
       if (auth) {
 
         let {org, code} = auth.account;
 
-        // TODO: check if we need to inject any other properties into the socket
-
         socket.org = org;
         socket.userId = code;
+
+        _.assign(socket, _.pick(auth, ['account', 'roles', 'token']));
+
+        socket.touch();
 
         debug('success:', org, code);
 
@@ -48,12 +50,16 @@ function authorizationForSocket(socket) {
 
 }
 
-function getRoles(token, callback) {
+function getRoles(socket, callback) {
+
+  let {accessToken, deviceUUID, userAgent} = socket;
 
   const options = {
     url: config.pha.roles,
     headers: {
-      'Authorization': token
+      'Authorization': accessToken,
+      deviceUUID: deviceUUID,
+      "user-agent": userAgent
     }
   };
 
@@ -67,14 +73,14 @@ function getRoles(token, callback) {
     if (response.statusCode === 200) {
 
       const roles = JSON.parse(body);
-      console.log('Authorized token:', token, 'account:', roles.account.name);
+      console.log('Authorized token:', accessToken, 'account:', roles.account.name);
       callback(roles);
 
     } else {
 
       if (response.statusCode === 403) {
 
-        console.error('Authorization error token:', token, 'status:', response.statusCode);
+        console.error('Authorization error token:', accessToken, 'status:', response.statusCode);
         callback(false);
 
       } else {
@@ -108,7 +114,7 @@ function authenticator(needRolesStringOrArray) {
     }
 
     if (!tokens[token]) {
-      return getRoles(token, onRoles);
+      return getRoles({accessToken:token}, onRoles);
     }
 
     onAuthorized(tokens[token]);

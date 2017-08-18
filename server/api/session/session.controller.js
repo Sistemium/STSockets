@@ -84,6 +84,12 @@ exports.register = function (socket) {
     unRegister(socket);
   });
 
+  socket.touch();
+
+};
+
+exports.registerSubs = function (socket) {
+
   socket.on('sockData:register', function (ack) {
     sockData.register(socket, function (res) {
       if (typeof ack === 'function') {
@@ -148,8 +154,6 @@ exports.register = function (socket) {
     });
 
   });
-
-  socket.touch();
 
 };
 

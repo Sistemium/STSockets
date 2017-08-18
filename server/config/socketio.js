@@ -82,26 +82,17 @@ function onAuthorizationCallback(socket) {
 
       jsDataSocket.register(socket);
 
-      if (data.deviceUUID) {
-
-        socket.deviceUUID = data.deviceUUID;
-        socket.deviceInfo = data;
-
-        sockData.register(socket, res => {
-
-          if (res) {
-            statusSocket.register(socket);
-            remoteCommandsSocket.register(socket);
-          }
-
-          ack({isAuthorized: !!res});
-
-        });
-
-      } else {
+      socket.deviceUUID = data.deviceUUID;
+      socket.deviceInfo = socket.deviceUUID ? data : undefined;
 
         authorizationForSocket(socket)
           .then(authorized => {
+            if (authorized){
+              session.registerSubs(socket);
+              sockData.register(socket);
+              statusSocket.register(socket);
+              remoteCommandsSocket.register(socket);
+            }
             ack({isAuthorized: !!authorized});
           })
           .catch(error => {
@@ -110,8 +101,6 @@ function onAuthorizationCallback(socket) {
             }
             ack({error: error});
           });
-
-      }
 
     } else {
 
