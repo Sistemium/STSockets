@@ -7,6 +7,7 @@ const debug = require('debug')('sts:session.controller');
 const sockData = require('../../components/sockData');
 const statusSocket = require('../../api/status/status.socket');
 const pushRequest = require('../remoteCommands/remoteCommands.socket').pushRequest;
+const pushCommand = require('../remoteCommands/remoteCommands.socket').pushCommand;
 
 const ee = new events.EventEmitter();
 const sockets = [];
@@ -143,7 +144,7 @@ exports.registerSubs = function (socket) {
 
   socket.on('device:pushRequest', function (deviceUUID, request, ack) {
 
-    pushRequest(deviceUUID,request).then(response =>{
+    pushRequest(deviceUUID, request).then(response => {
 
       ack(response);
 
@@ -152,6 +153,14 @@ exports.registerSubs = function (socket) {
       ack({error});
 
     });
+
+  });
+
+  socket.on('device:pushCommand', function (deviceUUID, command, ack) {
+
+    let result = pushCommand(deviceUUID, command);
+
+    ack(result);
 
   });
 

@@ -101,7 +101,7 @@ function emitToDevice(deviceUUID, commands) {
 
 function pushRequest(deviceUUID, requests) {
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
 
     let matchingSocket = _.find(sockets, socket => {
       return socket.deviceUUID === deviceUUID && !socket.destroyed;
