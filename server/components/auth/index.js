@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = {authenticator, authorizationForSocket};
+module.exports = {authenticator, authorizationForSocket, authorizedForSocketChange};
 
 const request = require('request');
 const _ = require('lodash');
@@ -158,5 +158,11 @@ function authenticator(needRolesStringOrArray) {
     }
 
   };
+
+}
+
+function authorizedForSocketChange(socket, changedSocket) {
+
+  return (socket.roles.socketAdmin === '*' || socket.roles.socketAdmin === changedSocket.org || socket.org === changedSocket.org);
 
 }

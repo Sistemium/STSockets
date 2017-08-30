@@ -8,6 +8,7 @@ const sockData = require('../../components/sockData');
 const statusSocket = require('../../api/status/status.socket');
 const pushRequest = require('../remoteCommands/remoteCommands.socket').pushRequest;
 const pushCommand = require('../remoteCommands/remoteCommands.socket').pushCommand;
+const authorizedForSocketChange = require('../../components/auth').authorizedForSocketChange;
 
 const ee = new events.EventEmitter();
 const sockets = [];
@@ -55,7 +56,7 @@ ee.on('session:state', function (changedSocket) {
   _.each(sockets, function (socket) {
     if (socket.subscriber['session:state']) {
 
-      if (socket.org === changedSocket.org) {
+      if (authorizedForSocketChange(socket, changedSocket)) {
 
         if (changedSocket.destroyed) {
           socket.emit('session:state:destroy', changedSocket.id);
