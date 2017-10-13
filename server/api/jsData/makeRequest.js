@@ -38,6 +38,7 @@ function makeRequest(options, resolve, reject) {
 
     if (response.statusCode === 204) {
       return resolve({
+        xOffset: response.headers['x-offset'],
         date: response.headers.date,
         status: response.statusCode
       });
