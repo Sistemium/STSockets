@@ -37,11 +37,20 @@ function makeRequest(options, resolve, reject) {
     }
 
     if (response.statusCode === 204) {
-      return resolve({
-        xOffset: response.headers['x-offset'],
+
+      let xOffset = _.get(response, 'headers.x-offset');
+
+      let res = {
         date: response.headers.date,
         status: response.statusCode
-      });
+      };
+
+      if (xOffset) {
+        res.xOffset = xOffset;
+      }
+
+      return resolve(res);
+
     }
 
     if (body && _.isString(body)) {
