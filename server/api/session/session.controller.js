@@ -15,13 +15,13 @@ const sockets = [];
 
 function socketData(socket) {
   let di = socket.deviceInfo && {
-      deviceUUID: socket.deviceInfo.deviceUUID,
-      deviceName: socket.deviceInfo.deviceName,
-      devicePlatform: socket.deviceInfo.devicePlatform,
-      bundleVersion: socket.deviceInfo.bundleVersion,
-      systemVersion: socket.deviceInfo.systemVersion,
-      buildType: socket.deviceInfo.buildType
-    };
+    deviceUUID: socket.deviceInfo.deviceUUID,
+    deviceName: socket.deviceInfo.deviceName,
+    devicePlatform: socket.deviceInfo.devicePlatform,
+    bundleVersion: socket.deviceInfo.bundleVersion,
+    systemVersion: socket.deviceInfo.systemVersion,
+    buildType: socket.deviceInfo.buildType
+  };
   return {
     id: socket.id,
     userAgent: socket.userAgent,
