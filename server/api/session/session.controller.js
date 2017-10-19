@@ -13,6 +13,35 @@ const authorizedForSocketChange = require('../../components/auth').authorizedFor
 const ee = new events.EventEmitter();
 const sockets = [];
 
+import {eventEmitter} from "../upload/process-request";
+
+eventEmitter.on('uploadSuccess', onUploadSuccess);
+eventEmitter.on('uploadProgress', onUploadProgress);
+const uploadSessions = {};
+
+
+function onUploadSuccess(info) {
+
+  let sessionID = info.sessionID;
+
+  let socket = uploadSessions[sessionID];
+
+  delete uploadSessions[sessionID];
+
+  socket.emit('uploadSuccess', info);
+
+}
+
+function onUploadProgress(info) {
+
+  let sessionID = info.sessionID;
+
+  let socket = uploadSessions[sessionID];
+
+  socket.emit('uploadProgress', info);
+
+}
+
 function socketData(socket) {
   let di = socket.deviceInfo && {
     deviceUUID: socket.deviceInfo.deviceUUID,
@@ -144,6 +173,14 @@ exports.registerSubs = function (socket) {
   });
 
   socket.on('device:pushRequest', function (deviceUUID, request, ack) {
+
+    let sessionID = _.get(request, 'STMCoreSessionFiler.uploadFileAtPath:.sessionID');
+
+    if (sessionID) {
+
+      uploadSessions[sessionID] = socket;
+
+    }
 
     pushRequest(deviceUUID, request).then(response => {
 
