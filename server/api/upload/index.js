@@ -3,17 +3,9 @@ const multer = require('multer');
 const router = express.Router();
 const serveStatic = require('serve-static');
 
-import {processUpload} from './process-request';
+import {processUpload, processError} from './process-request';
 
-const logErrors = function (err, req, res, next) {
-  let timestamp = Date.now();
-  console.log(timestamp + ' error: %s', err);
-  timestamp = Date.now();
-  console.log(timestamp + ' error: %s', err.stack);
-  next(err);
-};
-
-const processor = [multer().any(), processUpload, logErrors];
+const processor = [multer().any(), processUpload, processError];
 
 router.post('/', processor);
 router.use(serveStatic('uploads'));

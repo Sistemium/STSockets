@@ -4,7 +4,7 @@ const events = require('events');
 
 const eventEmitter = new events.EventEmitter();
 
-export {processUpload, eventEmitter};
+export {processUpload, eventEmitter, processError};
 
 function processUpload(req, res, next) {
 
@@ -26,14 +26,32 @@ function processUpload(req, res, next) {
       res.status(200).json({message: 'File received'});
     });
 
+    writeStream.on('error', err => {
+      writeStream.close();
+      next(err);
+    });
+
     req.on('data', chunk => {
       receivedBytes += chunk.length;
       eventEmitter.emit('uploadProgress', {sessionID, totalSize, receivedBytes});
-      // console.log(`Received ${chunk.length} bytes of data. total ${receivedBytes}`);
     });
 
     req.pipe(writeStream);
 
   });
+
+}
+
+function processError(err, req, res, next) {
+
+  console.log('just error');
+  let sessionID = req.header('x-session-id');
+  eventEmitter.emit('uploadError', {sessionID, error: err});
+
+  let timestamp = Date.now();
+  console.log(timestamp + ' error: %s', err);
+  timestamp = Date.now();
+  console.log(timestamp + ' error: %s', err.stack);
+  next(err);
 
 }

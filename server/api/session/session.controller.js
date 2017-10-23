@@ -17,6 +17,7 @@ import {eventEmitter} from "../upload/process-request";
 
 eventEmitter.on('uploadSuccess', onUploadSuccess);
 eventEmitter.on('uploadProgress', onUploadProgress);
+eventEmitter.on('uploadError', onUploadError);
 const uploadSessions = {};
 
 
@@ -39,6 +40,18 @@ function onUploadProgress(info) {
   let socket = uploadSessions[sessionID];
 
   socket.emit('uploadProgress', info);
+
+}
+
+function onUploadError(info) {
+
+  let sessionID = info.sessionID;
+
+  let socket = uploadSessions[sessionID];
+
+  delete uploadSessions[sessionID];
+
+  socket.emit('uploadError', info);
 
 }
 
