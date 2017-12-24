@@ -95,7 +95,7 @@ function find(resource, id, options) {
         return getFromBackend();
 
       })
-      .catch(reject);
+      .catch(getFromBackend);
 
     function getFromBackend() {
 
