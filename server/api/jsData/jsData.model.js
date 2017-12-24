@@ -214,9 +214,16 @@ function createOrUpdate(method, options) {
 
       if (objectXid && /.*\/RecordStatus$/i.test(options.resource) && isRemoved) {
         let org = _.first(options.resource.match(/[^\/]+\//)) || '';
-        return destroy(org + name, objectXid, options.options)
+        let resource = org + name;
+        return destroy(resource, objectXid, options.options)
           .then(() => resolve(fromBackend.data))
-          .catch(() => resolve(fromBackend.data));
+          .catch(() => {
+
+            resolve(fromBackend.data);
+
+            emitEvent('destroy', resource, options.sourceSocketId)({id: objectXid});
+
+          });
       }
 
       resolve(fromBackend.data);
@@ -268,11 +275,10 @@ function destroy(resource, id, options) {
       qs: options.qs
     };
 
+    redis.hdelAsync(hash, id);
+
     makeRequest(opts, () => {
-      emitEvent('destroy', resource, options.sourceSocketId)({
-        id: id
-      });
-      redis.hdelAsync(hash, id);
+      emitEvent('destroy', resource, options.sourceSocketId)({id});
       resolve();
     }, reject);
 
