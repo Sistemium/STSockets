@@ -76,33 +76,41 @@ function onAuthorizationCallback(socket) {
       });
     }
 
-    if ((socket.isAuthorized = !!data.accessToken)) {
+    if (!socket.isAuthorized && data.accessToken) {
 
       socket.accessToken = data.accessToken;
-
-      jsDataSocket.register(socket);
-
       socket.deviceUUID = data.deviceUUID;
       socket.deviceInfo = socket.deviceUUID ? data : undefined;
 
-        authorizationForSocket(socket)
-          .then(authorized => {
-            if (authorized){
-              session.registerSubs(socket);
-              sockData.register(socket);
-              statusSocket.register(socket);
-              remoteCommandsSocket.register(socket);
-            }
-            ack({isAuthorized: !!authorized});
-          })
-          .catch(error => {
-            if (error) {
-              console.error(error);
-            }
-            ack({error: error});
-          });
+      authorizationForSocket(socket)
+        .then(isAuthorized => {
+
+          socket.isAuthorized = !!isAuthorized;
+
+          if (isAuthorized) {
+            jsDataSocket.register(socket);
+            session.registerSubs(socket);
+            sockData.register(socket);
+            statusSocket.register(socket);
+            remoteCommandsSocket.register(socket);
+
+          }
+
+          ack({isAuthorized: socket.isAuthorized});
+
+        })
+        .catch(error => {
+          if (error) {
+            console.error(error);
+          }
+          ack({error: error});
+        });
 
     } else {
+
+      if (!data.accessToken) {
+        jsDataSocket.register(socket);
+      }
 
       delete socket.accessToken;
       delete socket.userId;
@@ -121,7 +129,7 @@ function config(socketIO) {
   socketIO.on('connection', function (socket) {
 
     socket.address = socket.handshake.address !== null ?
-    socket.handshake.address.address + ':' + socket.handshake.address.port :
+      socket.handshake.address.address + ':' + socket.handshake.address.port :
       process.env.DOMAIN;
 
     socket.connectedAt = new Date();
