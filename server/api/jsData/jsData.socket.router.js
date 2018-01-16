@@ -104,7 +104,7 @@ function handleFindAllSuccess(callback, method, resource, params, context, pageS
     if (context) {
       res.context = context;
     }
-    debug('handleFindAllSuccess', method, resource, params, res.data.id ? 1 : res.data.length, context, pageSize);
+    debug('handleFindAllSuccess', method, resource, params, res.data.id ? 1 : res.data.length);
     callback(res);
     return reply;
   }
