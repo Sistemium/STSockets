@@ -113,6 +113,10 @@ function find(resource, id, options) {
 
             if (fromBackend && fromBackend.data) {
 
+              if (fromBackend.noCache) {
+                return resolvePending(fromBackend.data);
+              }
+
               let authData = {
                 eTag: fromBackend.eTag,
                 uts: Date.now()
@@ -125,6 +129,7 @@ function find(resource, id, options) {
                 });
 
               fromBackend.uts = Date.now();
+
               redis.hsetAsync(hash, id, fromBackend);
 
               resolvePending(fromBackend.data);

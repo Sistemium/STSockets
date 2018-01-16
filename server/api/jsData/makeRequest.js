@@ -7,6 +7,7 @@ const _ = require('lodash');
 
 module.exports = makeRequest;
 
+const noCacheRe = /no-cache/i;
 
 function makeRequest(options, resolve, reject) {
 
@@ -70,7 +71,8 @@ function makeRequest(options, resolve, reject) {
       eTag: response.headers.etag,
       date: response.headers.date,
       data: result,
-      status: response.statusCode
+      status: response.statusCode,
+      noCache: noCacheRe.test(response.headers['cache-control'])
     });
 
   });
