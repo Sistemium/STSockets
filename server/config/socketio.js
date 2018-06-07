@@ -35,6 +35,8 @@ function onConnect(socket) {
     'address:', socket.handshake.headers['x-real-ip'] || socket.handshake.address
   );
 
+  socket.setMaxListeners(20);
+
   socket.userAgent = socket.handshake.headers['user-agent'];
 
   session.register(socket);
