@@ -5,7 +5,7 @@ const _ = require('lodash');
 const uuid = require('node-uuid');
 const debug = require('debug')('sts:remoteCommands:socket');
 
-const eventEmitter = new events.EventEmitter();
+// const eventEmitter = new events.EventEmitter();
 const sockets = [];
 import {agentBuild, agentName} from '../../components/util';
 const jsData = require('../jsData/jsData.socket');
@@ -18,9 +18,9 @@ const jsData = require('../jsData/jsData.socket');
  Init
  */
 
-eventEmitter.on('remoteCommands', function (params) {
-  emitToDevice(params.deviceUUID, params.commands);
-});
+// eventEmitter.on('remoteCommands', function (params) {
+//   emitToDevice(params.deviceUUID, params.commands);
+// });
 
 /*
  Public
