@@ -8,7 +8,7 @@ module.exports = config;
 
 import _ from 'lodash';
 
-const statusSocket = require('../api/status/status.socket');
+// const statusSocket = require('../api/status/status.socket');
 const remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
 const sockData = require('../components/sockData');
 const session = require('../api/session/session.controller');
@@ -93,7 +93,7 @@ function onAuthorizationCallback(socket) {
             jsDataSocket.register(socket);
             session.registerSubs(socket);
             sockData.register(socket);
-            statusSocket.register(socket);
+            // statusSocket.register(socket);
             remoteCommandsSocket.register(socket);
 
           }

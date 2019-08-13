@@ -5,7 +5,7 @@ const _ = require('lodash');
 const debug = require('debug')('sts:session.controller');
 
 const sockData = require('../../components/sockData');
-const statusSocket = require('../../api/status/status.socket');
+// const statusSocket = require('../../api/status/status.socket');
 const pushRequest = require('../remoteCommands/remoteCommands.socket').pushRequest;
 const pushCommand = require('../remoteCommands/remoteCommands.socket').pushCommand;
 const authorizedForSocketChange = require('../../components/auth').authorizedForSocketChange;
