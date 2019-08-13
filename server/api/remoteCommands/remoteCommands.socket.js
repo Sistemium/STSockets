@@ -58,11 +58,11 @@ function pushRequest(deviceUUID, requests) {
     });
 
     if (!matchingSocket) {
-      reject('device not connected');
+      return reject('device not connected');
     }
 
     console.info('remoteRequest deviceUUID:', deviceUUID, 'requests:', requests);
-    matchingSocket.emit('remoteRequests', requests, response => resolve(response));
+    matchingSocket.emit('remoteRequests', requests, resolve);
 
   });
 
