@@ -102,14 +102,14 @@ exports.registerSubs = function (socket) {
     });
   });
 
-  socket.on('status:register', function (ack) {
-    statusSocket.register(socket);
-    if (typeof ack === 'function') {
-      ack({
-        isAuthorized: true
-      });
-    }
-  });
+  // socket.on('status:register', function (ack) {
+  //   statusSocket.register(socket);
+  //   if (typeof ack === 'function') {
+  //     ack({
+  //       isAuthorized: true
+  //     });
+  //   }
+  // });
 
   socket.on('session:state:register', function (ack) {
     socket.subscriber ['session:state'] = true;
