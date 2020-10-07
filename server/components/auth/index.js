@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = {authenticator, authorizationForSocket, authorizedForSocketChange};
+module.exports = { authenticator, authorizationForSocket, authorizedForSocketChange };
 
 const request = require('request');
 const _ = require('lodash');
@@ -15,15 +15,15 @@ function log401(url, token) {
   console.error('Not authorized token:', token, 'url:', url);
 }
 
-function authorizationForSocket(socket) {
+async function authorizationForSocket(socket) {
 
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
 
     return getRoles(socket, auth => {
 
       if (auth) {
 
-        let {org, code} = auth.account;
+        const { org, code, name } = auth.account;
 
         socket.org = org;
         socket.userId = code;
@@ -32,7 +32,7 @@ function authorizationForSocket(socket) {
 
         socket.touch();
 
-        debug('success:', org, code);
+        debug('success:', `"${name}"`, `org:${org}`, `code:${code}`);
 
         authEmitter.emit(`${org}/auth`, socket);
 
@@ -52,18 +52,18 @@ function authorizationForSocket(socket) {
 
 function getRoles(socket, callback) {
 
-  let {accessToken, deviceUUID, userAgent} = socket;
+  const { accessToken, deviceUUID, userAgent } = socket;
 
   const options = {
     url: config.pha.roles,
     headers: {
       'Authorization': accessToken,
       deviceUUID: deviceUUID,
-      "user-agent": userAgent
+      'user-agent': userAgent
     }
   };
 
-  request(options, function (error, response, body) {
+  request(options, (error, response, body) => {
 
     if (error) {
       console.error(error);
@@ -114,7 +114,7 @@ function authenticator(needRolesStringOrArray) {
     }
 
     if (!tokens[token]) {
-      return getRoles({accessToken:token}, onRoles);
+      return getRoles({ accessToken: token }, onRoles);
     }
 
     onAuthorized(tokens[token]);
@@ -128,8 +128,8 @@ function authenticator(needRolesStringOrArray) {
       }
 
       let hasRole = !needRoles || _.reduce(needRoles, function (accumulator, role) {
-          return accumulator || !!auth.roles[role];
-        }, false);
+        return accumulator || !!auth.roles[role];
+      }, false);
 
       if (hasRole) {
         req.auth = auth;
