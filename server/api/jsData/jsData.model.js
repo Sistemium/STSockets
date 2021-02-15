@@ -218,6 +218,7 @@ function createOrUpdate(method, options) {
       // debug('objectXid', objectXid, name, options.resource);
 
       if (objectXid && /.*\/RecordStatus$/i.test(options.resource) && isRemoved) {
+
         let org = _.first(options.resource.match(/[^\/]+\//)) || '';
         let resource = org + name;
         return destroy(resource, objectXid, options.options)
@@ -225,6 +226,10 @@ function createOrUpdate(method, options) {
           .catch(() => {
 
             resolve(fromBackend.data);
+
+            if (/^(Partner|Outlet)$/.test(options.resource)) {
+              return;
+            }
 
             emitEvent('destroy', resource, options.sourceSocketId)({id: objectXid});
 
