@@ -34,7 +34,8 @@
     "node": ">=5.4.0"
   },
   "scripts": {
-    "lint": "eslint api",
+    "lint": "eslint server",
+    "build": "rm -rf dist && mkdir -p dist && cp -r server dist && cp package.json dist",
     "start": "nodemon --exec 'node -r esm' -- server"
   },
   "private": true
