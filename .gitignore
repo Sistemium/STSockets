@@ -10,3 +10,4 @@ webstorm
 *.log
 wallaby.js
 server/config/plugins
+.DS_Store

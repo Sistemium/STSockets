@@ -95,7 +95,7 @@ function find(resource, id, options) {
         return getFromBackend();
 
       })
-      .catch(reject);
+      .catch(getFromBackend);
 
     function getFromBackend() {
 
@@ -113,6 +113,10 @@ function find(resource, id, options) {
 
             if (fromBackend && fromBackend.data) {
 
+              if (fromBackend.noCache) {
+                return resolvePending(fromBackend.data);
+              }
+
               let authData = {
                 eTag: fromBackend.eTag,
                 uts: Date.now()
@@ -125,6 +129,7 @@ function find(resource, id, options) {
                 });
 
               fromBackend.uts = Date.now();
+
               redis.hsetAsync(hash, id, fromBackend);
 
               resolvePending(fromBackend.data);
@@ -213,10 +218,22 @@ function createOrUpdate(method, options) {
       // debug('objectXid', objectXid, name, options.resource);
 
       if (objectXid && /.*\/RecordStatus$/i.test(options.resource) && isRemoved) {
+
         let org = _.first(options.resource.match(/[^\/]+\//)) || '';
-        return destroy(org + name, objectXid, options.options)
+        let resource = org + name;
+        return destroy(resource, objectXid, options.options)
           .then(() => resolve(fromBackend.data))
-          .catch(() => resolve(fromBackend.data));
+          .catch(() => {
+
+            resolve(fromBackend.data);
+
+            if (/^(Partner|Outlet)$/.test(options.resource)) {
+              return;
+            }
+
+            emitEvent('destroy', resource, options.sourceSocketId)({id: objectXid});
+
+          });
       }
 
       resolve(fromBackend.data);
@@ -268,11 +285,10 @@ function destroy(resource, id, options) {
       qs: options.qs
     };
 
+    redis.hdelAsync(hash, id);
+
     makeRequest(opts, () => {
-      emitEvent('destroy', resource, options.sourceSocketId)({
-        id: id
-      });
-      redis.hdelAsync(hash, id);
+      emitEvent('destroy', resource, options.sourceSocketId)({id});
       resolve();
     }, reject);
 

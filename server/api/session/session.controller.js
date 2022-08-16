@@ -5,7 +5,10 @@ const _ = require('lodash');
 const debug = require('debug')('sts:session.controller');
 
 const sockData = require('../../components/sockData');
-const statusSocket = require('../../api/status/status.socket');
+// const statusSocket = require('../../api/status/status.socket');
+const pushRequest = require('../remoteCommands/remoteCommands.socket').pushRequest;
+const pushCommand = require('../remoteCommands/remoteCommands.socket').pushCommand;
+const authorizedForSocketChange = require('../../components/auth').authorizedForSocketChange;
 
 const ee = new events.EventEmitter();
 const sockets = [];
@@ -27,6 +30,7 @@ function socketData(socket) {
     account: socket.account,
     lastStatus: socket.lastStatus,
     ts: socket.ts,
+    cts: socket.connectedAt,
     deviceInfo: di
   };
 }
@@ -52,7 +56,7 @@ ee.on('session:state', function (changedSocket) {
   _.each(sockets, function (socket) {
     if (socket.subscriber['session:state']) {
 
-      if (socket.org === changedSocket.org) {
+      if (authorizedForSocketChange(socket, changedSocket)) {
 
         if (changedSocket.destroyed) {
           socket.emit('session:state:destroy', changedSocket.id);
@@ -82,6 +86,12 @@ exports.register = function (socket) {
     unRegister(socket);
   });
 
+  socket.touch();
+
+};
+
+exports.registerSubs = function (socket) {
+
   socket.on('sockData:register', function (ack) {
     sockData.register(socket, function (res) {
       if (typeof ack === 'function') {
@@ -92,14 +102,14 @@ exports.register = function (socket) {
     });
   });
 
-  socket.on('status:register', function (ack) {
-    statusSocket.register(socket);
-    if (typeof ack === 'function') {
-      ack({
-        isAuthorized: true
-      });
-    }
-  });
+  // socket.on('status:register', function (ack) {
+  //   statusSocket.register(socket);
+  //   if (typeof ack === 'function') {
+  //     ack({
+  //       isAuthorized: true
+  //     });
+  //   }
+  // });
 
   socket.on('session:state:register', function (ack) {
     socket.subscriber ['session:state'] = true;
@@ -121,7 +131,39 @@ exports.register = function (socket) {
     }
   });
 
-  socket.touch();
+  socket.on('session:state:findAll', function (ack) {
+    console.log('session:state:findAll id:', socket.id);
+    let data = _.map(sockets, function (socket) {
+      return socketData(socket);
+    });
+    if (typeof ack === 'function') {
+      ack({
+        data
+      });
+    }
+  });
+
+  socket.on('device:pushRequest', function (deviceUUID, request, ack) {
+
+    pushRequest(deviceUUID, request).then(response => {
+
+      ack(response);
+
+    }).catch(error => {
+
+      ack({error});
+
+    });
+
+  });
+
+  socket.on('device:pushCommand', function (deviceUUID, command, ack) {
+
+    let result = pushCommand(deviceUUID, command);
+
+    ack(result);
+
+  });
 
 };
 

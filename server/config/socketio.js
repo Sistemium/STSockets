@@ -8,7 +8,7 @@ module.exports = config;
 
 import _ from 'lodash';
 
-const statusSocket = require('../api/status/status.socket');
+// const statusSocket = require('../api/status/status.socket');
 const remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
 const sockData = require('../components/sockData');
 const session = require('../api/session/session.controller');
@@ -34,6 +34,8 @@ function onConnect(socket) {
     'id:', socket.id,
     'address:', socket.handshake.headers['x-real-ip'] || socket.handshake.address
   );
+
+  socket.setMaxListeners(20);
 
   socket.userAgent = socket.handshake.headers['user-agent'];
 
@@ -76,44 +78,41 @@ function onAuthorizationCallback(socket) {
       });
     }
 
-    if ((socket.isAuthorized = !!data.accessToken)) {
+    if (!socket.isAuthorized && data.accessToken) {
 
       socket.accessToken = data.accessToken;
+      socket.deviceUUID = data.deviceUUID;
+      socket.deviceInfo = socket.deviceUUID ? data : undefined;
 
-      jsDataSocket.register(socket);
+      authorizationForSocket(socket)
+        .then(isAuthorized => {
 
-      if (data.deviceUUID) {
+          socket.isAuthorized = !!isAuthorized;
 
-        socket.deviceUUID = data.deviceUUID;
-        socket.deviceInfo = data;
-
-        sockData.register(socket, res => {
-
-          if (res) {
-            statusSocket.register(socket);
+          if (isAuthorized) {
+            jsDataSocket.register(socket);
+            session.registerSubs(socket);
+            sockData.register(socket);
+            // statusSocket.register(socket);
             remoteCommandsSocket.register(socket);
+
           }
 
-          ack({isAuthorized: !!res});
+          ack({isAuthorized: socket.isAuthorized});
 
+        })
+        .catch(error => {
+          if (error) {
+            console.error(error);
+          }
+          ack({error: error});
         });
 
-      } else {
-
-        authorizationForSocket(socket)
-          .then(authorized => {
-            ack({isAuthorized: !!authorized});
-          })
-          .catch(error => {
-            if (error) {
-              console.error(error);
-            }
-            ack({error: error});
-          });
-
-      }
-
     } else {
+
+      if (!data.accessToken) {
+        jsDataSocket.register(socket);
+      }
 
       delete socket.accessToken;
       delete socket.userId;
@@ -132,7 +131,7 @@ function config(socketIO) {
   socketIO.on('connection', function (socket) {
 
     socket.address = socket.handshake.address !== null ?
-    socket.handshake.address.address + ':' + socket.handshake.address.port :
+      socket.handshake.address.address + ':' + socket.handshake.address.port :
       process.env.DOMAIN;
 
     socket.connectedAt = new Date();

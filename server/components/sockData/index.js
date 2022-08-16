@@ -11,11 +11,8 @@ const config = require('../../config/environment');
 const sockets = [];
 const apiV1 = config.APIv1;
 const apiV3 = config.APIv3;
-const rolesUrl = config.pha.roles;
 
 const eventEmitter = new events.EventEmitter();
-
-const authEmitter = require('../auth/emitter');
 
 
 const liveSearchData = {};
@@ -29,53 +26,11 @@ eventEmitter.on('api:data', function (data) {
 exports.register = sockDataRegister;
 
 
-function sockDataRegister(socket, ack) {
+function sockDataRegister(socket) {
 
-  let {accessToken, deviceUUID, userAgent} = socket;
+  sockets.push(socket);
 
-  authByToken(accessToken, deviceUUID, userAgent, (res, status) => {
-
-    if (status === 401) {
-
-      console.info(
-        'sockData register id', socket.id,
-        'not authorized'
-      );
-
-      ack(false);
-
-    } else if (!res || !res.account) {
-
-      console.info('sockData register id', socket.id, 'error: ', status);
-      //socket.disconnect();
-
-    } else {
-
-      socket.org = res.account.org;
-      socket.userId = res.account.code;
-
-      _.assign(socket, _.pick(res, ['account', 'roles', 'token']));
-
-      sockets.push(socket);
-
-      console.info(
-        'sockData register id', socket.id,
-        'deviceUUID:', deviceUUID,
-        'org:', socket.org,
-        'userId:', socket.userId
-      );
-
-      socket.touch();
-
-      register(socket);
-
-      authEmitter.emit(`${socket.org}/auth`, socket);
-
-      ack(true);
-
-    }
-
-  });
+  register(socket);
 
 }
 
@@ -109,33 +64,6 @@ function postApi(data, socket, callback) {
 
   return request.post(options, function (err, res, body) {
     callback(body);
-  });
-
-}
-
-
-function authByToken(token, deviceUUID, userAgent, callback) {
-
-  let options = {
-    url: rolesUrl,
-    headers: {
-      authorization: token,
-      deviceUUID: deviceUUID,
-      "user-agent": userAgent
-    }
-  };
-
-  request.get(options, function (err, res, body) {
-
-    let jsonBody;
-
-    try {
-      jsonBody = JSON.parse(body);
-    } catch (x) {
-      jsonBody = false;
-    }
-
-    callback(err ? false : jsonBody, res && res.statusCode);
   });
 
 }

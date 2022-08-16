@@ -7,6 +7,7 @@ const _ = require('lodash');
 
 module.exports = makeRequest;
 
+const noCacheRe = /no-cache/i;
 
 function makeRequest(options, resolve, reject) {
 
@@ -37,10 +38,20 @@ function makeRequest(options, resolve, reject) {
     }
 
     if (response.statusCode === 204) {
-      return resolve({
+
+      let xOffset = _.get(response, 'headers.x-offset');
+
+      let res = {
         date: response.headers.date,
         status: response.statusCode
-      });
+      };
+
+      if (xOffset) {
+        res.xOffset = xOffset;
+      }
+
+      return resolve(res);
+
     }
 
     if (body && _.isString(body)) {
@@ -60,7 +71,8 @@ function makeRequest(options, resolve, reject) {
       eTag: response.headers.etag,
       date: response.headers.date,
       data: result,
-      status: response.statusCode
+      status: response.statusCode,
+      noCache: noCacheRe.test(response.headers['cache-control'])
     });
 
   });

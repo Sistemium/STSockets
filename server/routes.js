@@ -12,6 +12,7 @@ module.exports = function(app) {
   app.use('/api/remoteCommands', require('./api/remoteCommands'));
   app.use('/api/remoteRequests', require('./api/remoteRequests'));
   app.use('/api/sockets', require('./api/session'));
+  app.use('/api/session', require('./api/session'));
   app.use('/api/jsData', require('./api/jsData'));
   app.use('/api/msg', require('./api/msg'));
   // app.use('/api/status', require('./api/status'));

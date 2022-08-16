@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = {authenticator, authorizationForSocket};
+module.exports = { authenticator, authorizationForSocket, authorizedForSocketChange };
 
 const request = require('request');
 const _ = require('lodash');
@@ -15,22 +15,24 @@ function log401(url, token) {
   console.error('Not authorized token:', token, 'url:', url);
 }
 
-function authorizationForSocket(socket) {
+async function authorizationForSocket(socket) {
 
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
 
-    return getRoles(socket.accessToken, auth => {
+    return getRoles(socket, auth => {
 
       if (auth) {
 
-        let {org, code} = auth.account;
-
-        // TODO: check if we need to inject any other properties into the socket
+        const { org, code, name } = auth.account;
 
         socket.org = org;
         socket.userId = code;
 
-        debug('success:', org, code);
+        _.assign(socket, _.pick(auth, ['account', 'roles', 'token']));
+
+        socket.touch();
+
+        debug('success:', `"${name}"`, `org:${org}`, `code:${code}`);
 
         authEmitter.emit(`${org}/auth`, socket);
 
@@ -48,16 +50,20 @@ function authorizationForSocket(socket) {
 
 }
 
-function getRoles(token, callback) {
+function getRoles(socket, callback) {
+
+  const { accessToken, deviceUUID, userAgent } = socket;
 
   const options = {
     url: config.pha.roles,
     headers: {
-      'Authorization': token
+      'Authorization': accessToken,
+      deviceUUID: deviceUUID,
+      'user-agent': userAgent
     }
   };
 
-  request(options, function (error, response, body) {
+  request(options, (error, response, body) => {
 
     if (error) {
       console.error(error);
@@ -67,14 +73,14 @@ function getRoles(token, callback) {
     if (response.statusCode === 200) {
 
       const roles = JSON.parse(body);
-      console.log('Authorized token:', token, 'account:', roles.account.name);
+      console.log('Authorized token:', accessToken, 'account:', roles.account.name);
       callback(roles);
 
     } else {
 
       if (response.statusCode === 403) {
 
-        console.error('Authorization error token:', token, 'status:', response.statusCode);
+        console.error('Authorization error token:', accessToken, 'status:', response.statusCode);
         callback(false);
 
       } else {
@@ -108,7 +114,7 @@ function authenticator(needRolesStringOrArray) {
     }
 
     if (!tokens[token]) {
-      return getRoles(token, onRoles);
+      return getRoles({ accessToken: token }, onRoles);
     }
 
     onAuthorized(tokens[token]);
@@ -122,8 +128,8 @@ function authenticator(needRolesStringOrArray) {
       }
 
       let hasRole = !needRoles || _.reduce(needRoles, function (accumulator, role) {
-          return accumulator || !!auth.roles[role];
-        }, false);
+        return accumulator || !!auth.roles[role];
+      }, false);
 
       if (hasRole) {
         req.auth = auth;
@@ -152,5 +158,11 @@ function authenticator(needRolesStringOrArray) {
     }
 
   };
+
+}
+
+function authorizedForSocketChange(socket, changedSocket) {
+
+  return (socket.roles.socketAdmin === '*' || socket.roles.socketAdmin === changedSocket.org || socket.org === changedSocket.org);
 
 }

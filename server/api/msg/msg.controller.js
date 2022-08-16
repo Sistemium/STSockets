@@ -23,7 +23,8 @@ function processObject(msg) {
     .then(res => {
       debug('hdelAsync', config.apiV4(msg.resource), msg.resourceId, res);
       return res;
-    });
+    })
+    .catch(res => debug('delAsync:error', msg.resourceId, res));
 }
 
 exports.create = function (req, res, next) {
