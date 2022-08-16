@@ -13,7 +13,14 @@ function makeRequest(options, resolve, reject) {
 
   let result;
 
-  request(options, (error, response, body) => {
+  const requestOptions = {
+    qsStringifyOptions: {
+      arrayFormat: 'brackets',
+    },
+    ...options,
+  };
+
+  request(requestOptions, (error, response, body) => {
 
     if (error) {
 
