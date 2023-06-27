@@ -15,7 +15,7 @@
     "esm": "^3.2.25",
     "express": "^4.13.4",
     "express-session": "~1.0.2",
-    "lodash": "~3.10.0",
+    "lodash": "^4.17.21",
     "lru-cache": "^4.0.1",
     "method-override": "~1.0.0",
     "morgan": "~1.7.x",
@@ -31,7 +31,7 @@
     "nodemon": "^1.19.1"
   },
   "engines": {
-    "node": ">=5.4.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "lint": "eslint server",
