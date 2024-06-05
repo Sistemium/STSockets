@@ -1,11 +1,9 @@
-'use strict';
-
-const express = require('express');
-const controller = require('./driver.controller');
+import express from 'express';
+import * as controller from './driver.controller';
 
 const router = express.Router();
 
 router.post('/', controller.driversRefresh);
 router.post('/driver', controller.driverRefresh);
 
-module.exports = router;
+export default router;

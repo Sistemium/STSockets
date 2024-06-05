@@ -1,9 +1,7 @@
-'use strict';
-
-const jsDataModel = require('./jsData.model');
+import * as jsDataModel from './jsData.model';
 
 
-exports.indexBy = function (req, res, next) {
+export function indexBy(req: any, res: any, next: any) {
 
   let resource = `${req.params.pool}/${req.params.parentResource}/${req.params.parentId}/${req.params.resource}`;
   let params = req.query;
@@ -16,13 +14,13 @@ exports.indexBy = function (req, res, next) {
     .catch(handleError(res, next))
   ;
 
-};
+}
 
-exports.index = function (req, res, next) {
+export function index(req: any, res: any, next: any) {
 
-  let resource = req.params.pool + '/' + req.params.resource;
-  let params = req.query;
-  let options = {
+  const resource = req.params.pool + '/' + req.params.resource;
+  const params = req.query;
+  const options = {
     headers: req.headers
   };
 
@@ -31,13 +29,13 @@ exports.index = function (req, res, next) {
     .catch(handleError(res, next))
   ;
 
-};
+}
 
-exports.show = function (req, res, next) {
+export function show(req: any, res: any, next: any) {
 
-  let resource = req.params.pool + '/' + req.params.resource;
-  let id = req.params.id;
-  let options = {
+  const resource = req.params.pool + '/' + req.params.resource;
+  const { id } = req.params;
+  const options = {
     headers: req.headers
   };
 
@@ -48,11 +46,11 @@ exports.show = function (req, res, next) {
 
 };
 
-exports.create = function (req, res, next) {
+export function create(req: any, res: any, next: any) {
 
-  let resource = req.params.pool + '/' + req.params.resource;
-  let attrs = req.body;
-  let options = {
+  const resource = `${req.params.pool}/${req.params.resource}`;
+  const attrs = req.body;
+  const options = {
     headers: req.headers,
     qs: req.query
   };
@@ -62,14 +60,14 @@ exports.create = function (req, res, next) {
     .catch(handleError(res, next))
   ;
 
-};
+}
 
-exports.update = function (req, res, next) {
+export function update(req: any, res: any, next: any) {
 
-  let resource = req.params.pool + '/' + req.params.resource;
-  let id = req.params.id;
-  let attrs = req.body;
-  let options = {
+  const resource = `${req.params.pool}/${req.params.resource}`;
+  const { id } = req.params;
+  const attrs = req.body;
+  const options = {
     headers: req.headers,
     qs: req.query
   };
@@ -79,13 +77,13 @@ exports.update = function (req, res, next) {
     .catch(handleError(res, next))
   ;
 
-};
+}
 
-exports.destroy = function (req, res, next) {
+export function destroy(req: any, res: any, next: any) {
 
-  let resource = req.params.pool + '/' + req.params.resource;
-  let id = req.params.id;
-  let options = {
+  const resource = `${req.params.pool}/${req.params.resource}`;
+  const { id } = req.params;
+  const options = {
     headers: req.headers,
     qs: req.query
   };
@@ -95,17 +93,17 @@ exports.destroy = function (req, res, next) {
     .catch(handleError(res, next))
   ;
 
-};
+}
 
-function handleResponse(response) {
-  return (data) => {
+function handleResponse(response: any) {
+  return (data: any) => {
     response.json(data);
   };
 }
 
-function handleFindAllResponse(response) {
-  return (res) => {
-    let offset = res && res.xOffset;
+function handleFindAllResponse(response: any) {
+  return (res: any) => {
+    const offset = res && res.xOffset;
     if (offset) {
       response.set('X-Offset', offset);
     }
@@ -113,8 +111,8 @@ function handleFindAllResponse(response) {
   };
 }
 
-function handleError(response, next) {
-  return errObj => {
+function handleError(response: any, next: any) {
+  return (errObj: any) => {
 
     let err = errObj && errObj.status || errObj;
 

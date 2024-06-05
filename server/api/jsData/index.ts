@@ -1,7 +1,5 @@
-'use strict';
-
-const express = require('express');
-const controller = require('./jsData.controller');
+import express from 'express';
+import * as controller from './jsData.controller';
 
 const router = express.Router();
 
@@ -12,4 +10,4 @@ router.post('/:pool/:resource', controller.create);
 router.put('/:pool/:resource/:id', controller.update);
 router.delete('/:pool/:resource/:id', controller.destroy);
 
-module.exports = router;
+export default router;

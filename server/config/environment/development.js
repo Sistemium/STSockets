@@ -1,8 +1,4 @@
-'use strict';
-
-// Development specific configuration
-// ==================================
-module.exports = {
+export default {
   port: process.env.PORT || 8000,
 
   APIv4: process.env.APIv4 || 'https://api.sistemium.com/v4d/',

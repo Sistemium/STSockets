@@ -1,15 +1,12 @@
-'use strict';
+// @ts-ignore
+import request from 'request';
+import log from 'sistemium-debug';
+import _ from 'lodash';
 
-const request = require('request');
-const debug = require('debug')('sts:makeRequest');
-const _ = require('lodash');
-
-
-module.exports = makeRequest;
-
+const { debug } = log('makeRequest');
 const noCacheRe = /no-cache/i;
 
-function makeRequest(options, resolve, reject) {
+export default function makeRequest(options: Record<string, any>, resolve: any, reject: any) {
 
   let result;
 
@@ -20,7 +17,7 @@ function makeRequest(options, resolve, reject) {
     ...options,
   };
 
-  request(requestOptions, (error, response, body) => {
+  request(requestOptions, (error: any, response: any, body: any) => {
 
     if (error) {
 
@@ -35,7 +32,7 @@ function makeRequest(options, resolve, reject) {
 
     if (response.statusCode >= 400) {
 
-      console.error('makeRequest error', response.statusCode, options, response.body);
+      debug('makeRequest error', response.statusCode, options, response.body);
 
       return reject({
         status: response.statusCode,
@@ -46,9 +43,9 @@ function makeRequest(options, resolve, reject) {
 
     if (response.statusCode === 204) {
 
-      let xOffset = _.get(response, 'headers.x-offset');
+      const xOffset = _.get(response, 'headers.x-offset');
 
-      let res = {
+      const res: Record<string, any> = {
         date: response.headers.date,
         status: response.statusCode
       };

@@ -1,21 +1,19 @@
-/**
- * Express configuration
- */
+import express from 'express';
+import path from 'path';
+import bodyParser from 'body-parser';
+// @ts-ignore
+import morgan from 'morgan';
+// @ts-ignore
+import compression from 'compression';
+// @ts-ignore
+import methodOverride from 'method-override';
+// @ts-ignore
+import errorHandler from 'errorhandler';
+// @ts-ignore
+import cors from 'cors';
+import config from './environment';
 
-'use strict';
-
-const express = require('express');
-const favicon = require('serve-favicon');
-const morgan = require('morgan');
-const compression = require('compression');
-const bodyParser = require('body-parser');
-const methodOverride = require('method-override');
-const errorHandler = require('errorhandler');
-const path = require('path');
-const config = require('./environment');
-const cors = require('cors');
-
-module.exports = function(app) {
+export default function(app: any) {
 
   const env = app.get('env');
 

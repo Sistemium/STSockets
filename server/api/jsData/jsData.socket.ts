@@ -1,27 +1,22 @@
-'use strict';
-
-const debug = require('debug')('sts:jsData:socket');
-
+import log from 'sistemium-debug';
 import _ from 'lodash';
-import uuid  from 'node-uuid';
+import * as uuid from 'uuid';
 import router from './jsData.socket.router';
-const jsDataModel = require('./jsData.model');
-const config = require('../../config/environment');
-const when = require('when');
-
-const {globalToken} = config;
-
-const subscriptions = [];
+import when from 'when';
+import * as jsDataModel from './jsData.model';
+import config from '../../config/environment';
 
 
-export {emitEvent, subscribe, unSubscribe, register};
+const { debug } = log('jsData:socket');
+const { globalToken } = config;
+const subscriptions: any[] = [];
 
 
-function emitEvent(method, resource, sourceSocketId) {
+export function emitEvent(method: string, resource: string, sourceSocketId: string) {
 
   debug('emitEvent:', method, resource);
 
-  return data => {
+  return (data: any) => {
 
     let pool = _.head(resource.split('/'));
 
@@ -31,7 +26,7 @@ function emitEvent(method, resource, sourceSocketId) {
       return emitToSubscribers(method, resource, sourceSocketId)(data);
     }
 
-    let adminSocket = {accessToken};
+    let adminSocket = { accessToken };
 
     authorizedForData(data, adminSocket, method, resource)
       .then(emitToSubscribers(method, resource, sourceSocketId))
@@ -43,9 +38,9 @@ function emitEvent(method, resource, sourceSocketId) {
 
 }
 
-function emitToSubscribers(method, resource, sourceSocketId) {
+function emitToSubscribers(method: string, resource: string, sourceSocketId: string) {
 
-  return data => {
+  return (data: any) => {
     _.each(subscriptions, subscription => {
 
       if (!_.includes(subscription.filter, resource)) {
@@ -88,9 +83,9 @@ function emitToSubscribers(method, resource, sourceSocketId) {
 
 }
 
-function emitToSocket(socket, method, resource, sourceSocketId) {
+function emitToSocket(socket: any, method: string, resource: string, sourceSocketId: string) {
 
-  return data => {
+  return (data: any) => {
     let event = 'jsData:' + method;
 
     if (socket.id !== sourceSocketId) {
@@ -104,9 +99,9 @@ function emitToSocket(socket, method, resource, sourceSocketId) {
 
 }
 
-function authorizedForData(data, socket, method, resource) {
+function authorizedForData(data: any, socket: any, method: string, resource: string) {
 
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
 
     let id = data.id;
 
@@ -134,9 +129,9 @@ function authorizedForData(data, socket, method, resource) {
 
 }
 
-function unRegister(socket) {
+function unRegister(socket: any) {
 
-  let toUnsubscribe = _.filter(subscriptions, {socket: socket});
+  let toUnsubscribe = _.filter(subscriptions, { socket });
 
   debug('unRegister:', socket.id, 'subscriptions:', toUnsubscribe.length);
 
@@ -146,9 +141,9 @@ function unRegister(socket) {
 
 }
 
-function subscribe(socket) {
+export function subscribe(socket: any) {
 
-  return function (filter, callback) {
+  return function (filter: Record<string, any>, callback?: any) {
 
     let subscription = {
       id: uuid.v4(),
@@ -160,7 +155,7 @@ function subscribe(socket) {
 
     subscriptions.push(subscription);
 
-    let result = {data: subscription.id};
+    const result = { data: subscription.id };
 
     if (_.isFunction(callback)) return callback(result);
 
@@ -170,10 +165,10 @@ function subscribe(socket) {
 
 }
 
-function unSubscribe(socket) {
-  return function (id, callback) {
+export function unSubscribe(socket: any) {
+  return function (id: string, callback?: any) {
 
-    let idx = _.findIndex(subscriptions, {id: id});
+    const idx = _.findIndex(subscriptions, { id });
     let subscription;
 
     if (idx >= 0) {
@@ -192,17 +187,16 @@ function unSubscribe(socket) {
 }
 
 
-function register(socket) {
+export function register(socket: any) {
 
   socket.on('jsData:subscribe', subscribe(socket));
-
   socket.on('jsData:unsubscribe', unSubscribe(socket));
 
   socket.on('disconnect', function () {
     unRegister(socket);
   });
 
-  socket.on('jsData', function (data, callback) {
+  socket.on('jsData', (data: any, callback?: any) => {
 
     data.options = data.options || {};
 

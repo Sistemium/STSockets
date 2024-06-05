@@ -1,12 +1,12 @@
-'use strict';
+import express from 'express';
+import * as controller from './msg.controller';
+import log from 'sistemium-debug';
 
-const express = require('express');
+const { debug } = log('msg');
 const router = express.Router();
-const controller = require('./msg.controller');
-const debug = require('debug')('sts:msg');
 
 router.post('/', controller.post);
 router.post('/:pool/:resource', controller.create);
 router.delete('/:pool/:resource', controller.delete);
 
-module.exports = router;
+export default router;

@@ -1,25 +1,23 @@
-'use strict';
+import authEmitter from './emitter';
+// @ts-ignore
+import request from 'request';
+import _ from 'lodash';
+import log from 'sistemium-debug';
+import config from '../../config/environment';
 
-module.exports = { authenticator, authorizationForSocket, authorizedForSocketChange };
+const { debug } = log('auth');
 
-const request = require('request');
-const _ = require('lodash');
+const tokens: Record<string, any> = {};
 
-const debug = require('debug')('sts:auth');
-const config = require('../../config/environment');
-const authEmitter = require('../auth/emitter');
-
-const tokens = {};
-
-function log401(url, token) {
+function log401(url: string, token: string) {
   console.error('Not authorized token:', token, 'url:', url);
 }
 
-async function authorizationForSocket(socket) {
+export async function authorizationForSocket(socket: any) {
 
   return new Promise((resolve, reject) => {
 
-    return getRoles(socket, auth => {
+    return getRoles(socket, (auth: Record<string, any>) => {
 
       if (auth) {
 
@@ -50,7 +48,7 @@ async function authorizationForSocket(socket) {
 
 }
 
-function getRoles(socket, callback) {
+function getRoles(socket: any, callback: any) {
 
   const { accessToken, deviceUUID, userAgent } = socket;
 
@@ -63,7 +61,7 @@ function getRoles(socket, callback) {
     }
   };
 
-  request(options, (error, response, body) => {
+  request(options, (error: any, response: any, body: any) => {
 
     if (error) {
       console.error(error);
@@ -96,11 +94,11 @@ function getRoles(socket, callback) {
 }
 
 
-function authenticator(needRolesStringOrArray) {
+export function authenticator(needRolesStringOrArray: string | string[]) {
 
-  let needRoles = _.isString(needRolesStringOrArray) ? [needRolesStringOrArray] : needRolesStringOrArray;
+  const needRoles = _.isString(needRolesStringOrArray) ? [needRolesStringOrArray] : needRolesStringOrArray;
 
-  return function (req, res, next) {
+  return function (req: any, res: any, next: any) {
 
     if (req.method === 'OPTIONS') {
       return next();
@@ -120,14 +118,14 @@ function authenticator(needRolesStringOrArray) {
     onAuthorized(tokens[token]);
 
 
-    function onAuthorized(auth) {
+    function onAuthorized(auth: Record<string, any>) {
 
       if (!auth.roles) {
         debug('onAuthorized', 'no roles', auth);
         return res.status(401).end('No auth data');
       }
 
-      let hasRole = !needRoles || _.reduce(needRoles, function (accumulator, role) {
+      const hasRole = !needRoles || _.reduce(needRoles, function (accumulator, role) {
         return accumulator || !!auth.roles[role];
       }, false);
 
@@ -141,7 +139,7 @@ function authenticator(needRolesStringOrArray) {
     }
 
 
-    function onRoles(auth) {
+    function onRoles(auth: Record<string, any>) {
 
       if (auth) {
         tokens[token] = auth;
@@ -161,8 +159,10 @@ function authenticator(needRolesStringOrArray) {
 
 }
 
-function authorizedForSocketChange(socket, changedSocket) {
+export function authorizedForSocketChange(socket: any, changedSocket: any) {
 
-  return (socket.roles.socketAdmin === '*' || socket.roles.socketAdmin === changedSocket.org || socket.org === changedSocket.org);
+  return socket.roles.socketAdmin === '*'
+    || socket.roles.socketAdmin === changedSocket.org
+    || socket.org === changedSocket.org;
 
 }

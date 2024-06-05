@@ -1,17 +1,14 @@
-'use strict';
-
-const express = require('express');
-const controller = require('./remoteCommands.controller');
+import express from 'express';
+import * as controller from './remoteRequests.controller';
+import config from '../../config/environment';
 
 const router = express.Router();
-const config = require('../../config/environment');
 const auth = require('../../components/auth').authenticator;
 const allowOnlyForAdmin = auth(config.api.adminRoles);
 
 
 router.get('/', allowOnlyForAdmin, controller.list);
 router.post('/', controller.deviceUUIDRequiredError);
-router.post('/:deviceUUID', controller.pushCommand);
+router.post('/:deviceUUID', controller.pushRequest);
 
-
-module.exports = router;
+export default router;

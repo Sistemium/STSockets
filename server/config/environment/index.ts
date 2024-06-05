@@ -1,12 +1,8 @@
-'use strict';
-
-const path = require('path');
-const _ = require('lodash');
+import path from 'path';
+import _ from 'lodash';
 
 
-// All configurations will extend these options
-// ============================================
-const all = {
+const all: Record<string, any> = {
   env: process.env.NODE_ENV,
 
   // Root path of server
@@ -38,14 +34,14 @@ const all = {
     db: process.env.REDIS_DATABASE || 0
   },
 
-  apiV4: function (resource) {
+  apiV4(resource: string) {
 
     if (!resource) {
-      console.error ('apiV4 empty resource');
+      console.error('apiV4 empty resource');
       return false;
     }
 
-    let org = resource.match (/(^[^\/]*)\/(.*)/);
+    let org = resource.match(/(^[^\/]*)\/(.*)/);
     let key = 'APIv4';
     let orgKey = key + (org ? '_' + org[1] : '');
 
@@ -53,7 +49,7 @@ const all = {
       return this[orgKey] + org [2];
     }
 
-    return this [key] + resource;
+    return this[key] + resource;
 
   },
 
@@ -67,14 +63,14 @@ const all = {
 
   plugins: process.env.PLUGINS_PATH,
 
-  globalToken: function(pool) {
+  globalToken(pool: string) {
     let key = `${pool.toUpperCase()}_AUTH`;
     return process.env[key] || false;
-  }
+  },
 
 };
 
-_.each (process.env, function(val, key) {
+_.each(process.env, (val: any, key: string) => {
 
   if (/APIv\d.*/.test(key)) {
     all [key] = val;
@@ -82,12 +78,11 @@ _.each (process.env, function(val, key) {
 
 });
 
-// Export the config object based on the NODE_ENV
-// ==============================================
-const config = _.merge(
+
+const config: Record<string, any> = _.merge(
   all,
   require('./' + process.env.NODE_ENV + '.js') || {});
 
-console.log ('Config:', config);
+console.log('Config:', config);
 
-module.exports = config;
+export default config

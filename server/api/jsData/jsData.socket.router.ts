@@ -1,14 +1,10 @@
-'use strict';
+import _ from 'lodash';
+import log from 'sistemium-debug';
+import * as jsDataModel from './jsData.model';
 
-const jsDataModel = require('./jsData.model');
-const debug = require('debug')('sts:jsData:socket:router');
-const _ = require('lodash');
+const { debug } = log('jsData:socket:router');
 
-
-module.exports = router;
-
-
-function router(data, callback) {
+export default function(data: any, callback: any) {
 
   let success = handleSuccess(callback, data.method, data.resource, data.id || data.params, data.context);
   let failure = handleError(callback, data.method, data.resource, data.id, data.context);
@@ -71,9 +67,9 @@ function router(data, callback) {
 }
 
 
-function handleSuccess(callback, method, resource, params, context) {
-  return reply => {
-    let res = {
+function handleSuccess(callback: any, method: string, resource: string, params: any, context: any) {
+  return (reply: any) => {
+    const res: Record<string, any> = {
       data: reply || [],
       resource: resource,
       method: method
@@ -87,9 +83,9 @@ function handleSuccess(callback, method, resource, params, context) {
   }
 }
 
-function handleFindAllSuccess(callback, method, resource, params, context, pageSize) {
-  return reply => {
-    let res = {
+function handleFindAllSuccess(callback: any, method: string, resource: string, params: any, context: any, pageSize: number) {
+  return (reply: any) => {
+    const res: Record<string, any> = {
       data: reply.data || [],
       resource: resource,
       method: method, context
@@ -110,10 +106,10 @@ function handleFindAllSuccess(callback, method, resource, params, context, pageS
   }
 }
 
-function handleError(callback, method, resource, id, context) {
-  return errObj => {
-    let err = errObj && errObj.status || errObj;
-    let res = {
+function handleError(callback: any, method: string, resource: string, id: string, context: any) {
+  return (errObj: any) => {
+    const err = errObj && errObj.status || errObj;
+    const res: Record<string, any> = {
       error: err,
       text: errObj.text,
       resource: resource,

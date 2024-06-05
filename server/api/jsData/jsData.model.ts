@@ -1,12 +1,13 @@
+import log from 'sistemium-debug';
 import _ from 'lodash';
+// @ts-ignore
 import LRU from 'lru-cache';
-
 import config from '../../config/environment';
 import makeRequest from './makeRequest';
-import redis from '../../config/redis';
-import {emitEvent} from './jsData.socket';
+import * as redis from '../../config/redis';
+import { emitEvent } from './jsData.socket';
 
-const debug = require('debug')('sts:jsData.model');
+const { debug } = log('jsData.model');
 
 const lruOptions = {
   max: process.env.JSD_LRU_MAX || 100,
@@ -15,10 +16,7 @@ const lruOptions = {
 
 const findRequests = LRU(lruOptions);
 
-export {findAll, find, create, update, destroy};
-
-
-function findAll(resource, params, options) {
+export function findAll(resource: string, params: Record<string, any>, options: Record<string, any>) {
 
   let headers = _.pick(options.headers, config.headers);
 
@@ -33,7 +31,7 @@ function findAll(resource, params, options) {
 
     //debug('findAll:opts', opts);
 
-    makeRequest(opts, fromBackend => {
+    makeRequest(opts, (fromBackend: any) => {
       //debug('fromBackend', fromBackend);
       resolve(fromBackend);
     }, reject);
@@ -42,21 +40,21 @@ function findAll(resource, params, options) {
 
 }
 
-function find(resource, id, options) {
+export function find(resource: string, id: string, options: Record<string, any>) {
 
-  let headers = _.pick(options.headers, config.headers);
+  const headers = _.pick(options.headers, config.headers);
 
   return new Promise((resolve, reject) => {
 
-    let hash = config.apiV4(resource);
+    const hash = config.apiV4(resource);
 
-    let opts = {
+    const opts = {
       url: hash + '/' + id,
       method: 'GET',
       headers: headers
     };
 
-    let expireRedisAfter = config.redis.expireAfter;
+    const expireRedisAfter = config.redis.expireAfter;
 
     if (!headers.authorization) {
       // 'Authorization required'
@@ -68,23 +66,23 @@ function find(resource, id, options) {
       return reject(400);
     }
 
-    let authorizedHash = `${options.authId || headers.authorization}#${hash}`;
-    let hashId = hash + '#' + id;
-    let minUts = Date.now() - expireRedisAfter;
+    const authorizedHash = `${options.authId || headers.authorization}#${hash}`;
+    const hashId = hash + '#' + id;
+    const minUts = Date.now() - expireRedisAfter;
 
     redis.hgetAsync(authorizedHash, id)
-      .then(authData => {
+      .then((authData: any) => {
 
         if (authData && authData.uts > minUts) {
 
           return redis.hgetAsync(hash, id)
             .then(gotFromRedisOrBackend)
-            .catch((err) => {
+            .catch((err: any) => {
 
               console.error('jsData:find:redis:error', err);
               debug('find:makeRequest', opts);
 
-              makeRequest(opts, fromBackend => {
+              makeRequest(opts, (fromBackend: any) => {
                 resolve(fromBackend.data);
               }, reject);
 
@@ -100,7 +98,7 @@ function find(resource, id, options) {
     function getFromBackend() {
 
       // TODO: check if possible to use pending by unauthorized hash
-      let authorizedHashId = `${authorizedHash}#${id}`;
+      const authorizedHashId = `${authorizedHash}#${id}`;
       let pending = findRequests.get(authorizedHashId);
 
       if (!pending) {
@@ -109,7 +107,7 @@ function find(resource, id, options) {
 
           makeRequest(opts, onSuccess, rejectPending);
 
-          function onSuccess(fromBackend) {
+          function onSuccess(fromBackend: any) {
 
             if (fromBackend && fromBackend.data) {
 
@@ -117,13 +115,13 @@ function find(resource, id, options) {
                 return resolvePending(fromBackend.data);
               }
 
-              let authData = {
+              const authData = {
                 eTag: fromBackend.eTag,
                 uts: Date.now()
               };
 
               redis.hsetAsync(authorizedHash, id, authData)
-                .then(reply => {
+                .then((reply: any) => {
                   debug('hsetAsync:authorizedHash', reply, authorizedHash, id, fromBackend.eTag);
                   redis.redisClient.expire(authorizedHash, expireRedisAfter);
                 });
@@ -164,7 +162,7 @@ function find(resource, id, options) {
 
     }
 
-    function gotFromRedisOrBackend(inRedis) {
+    function gotFromRedisOrBackend(inRedis: any) {
 
       if (inRedis && inRedis.data && inRedis.uts > minUts) {
         debug('find:redis', `${hashId} (${inRedis.uts})`);
@@ -178,17 +176,17 @@ function find(resource, id, options) {
   });
 }
 
-function createOrUpdate(method, options) {
+export function createOrUpdate(method: string, options: Record<string, any>) {
 
-  let headers = _.pick(options.headers, config.headers);
+  const headers = _.pick(options.headers, config.headers);
 
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
 
     let url = config.apiV4(options.resource);
-    let hash = url;
+    const hash = url;
     url += options.id ? '/' + options.id : '';
 
-    let opts = {
+    const opts = {
       url: url,
       method: method,
       headers: headers,
@@ -198,7 +196,7 @@ function createOrUpdate(method, options) {
 
     let id = options.id || _.get(options, 'attrs.id');
 
-    makeRequest(opts, fromBackend => {
+    makeRequest(opts, (fromBackend: any) => {
 
       if (!fromBackend || !fromBackend.data) {
         return reject({
@@ -213,14 +211,14 @@ function createOrUpdate(method, options) {
         redis.hdelAsync(hash, id);
       }
 
-      let {objectXid, name, isRemoved} = fromBackend.data;
+      const { objectXid, name, isRemoved } = fromBackend.data;
 
       // debug('objectXid', objectXid, name, options.resource);
 
       if (objectXid && /.*\/RecordStatus$/i.test(options.resource) && isRemoved) {
 
-        let org = _.first(options.resource.match(/[^\/]+\//)) || '';
-        let resource = org + name;
+        const org = _.first(options.resource.match(/[^\/]+\//)) || '';
+        const resource = org + name;
         return destroy(resource, objectXid, options.options)
           .then(() => resolve(fromBackend.data))
           .catch(() => {
@@ -231,7 +229,7 @@ function createOrUpdate(method, options) {
               return;
             }
 
-            emitEvent('destroy', resource, options.sourceSocketId)({id: objectXid});
+            emitEvent('destroy', resource, options.sourceSocketId)({ id: objectXid });
 
           });
       }
@@ -245,7 +243,7 @@ function createOrUpdate(method, options) {
 
 }
 
-function create(resource, attrs, options) {
+export function create(resource: string, attrs: any, options: any) {
 
   return createOrUpdate('POST', {
     resource: resource,
@@ -256,7 +254,7 @@ function create(resource, attrs, options) {
 
 }
 
-function update(resource, id, attrs, options) {
+export function update(resource: string, id: string, attrs: any, options: any) {
 
   return createOrUpdate('PUT', {
     resource: resource,
@@ -268,17 +266,17 @@ function update(resource, id, attrs, options) {
 
 }
 
-function destroy(resource, id, options) {
+export function destroy(resource: string, id: string, options: any) {
 
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
 
     if (!id) {
       return reject('id is required');
     }
 
-    let hash = config.apiV4(resource);
-    let url = hash + '/' + id;
-    let opts = {
+    const hash = config.apiV4(resource);
+    const url = hash + '/' + id;
+    const opts = {
       url: url,
       method: 'DELETE',
       headers: _.pick(options.headers, config.headers),
@@ -288,8 +286,8 @@ function destroy(resource, id, options) {
     redis.hdelAsync(hash, id);
 
     makeRequest(opts, () => {
-      emitEvent('destroy', resource, options.sourceSocketId)({id});
-      resolve();
+      emitEvent('destroy', resource, options.sourceSocketId)({ id });
+      resolve(null);
     }, reject);
 
   });
