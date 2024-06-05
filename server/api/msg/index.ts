@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.post('/', controller.post);
 router.post('/:pool/:resource', controller.create);
-router.delete('/:pool/:resource', controller.delete);
+router.delete('/:pool/:resource', controller.destroy);
 
 export default router;

@@ -1,38 +1,45 @@
-'use strict';
+import { eachSeries } from 'async';
+import _ from 'lodash';
+import log from 'sistemium-debug';
+// @ts-ignore
+import redis from '../../config/redis';
 
-const _ = require('lodash');
-const debug = require('debug')('sts:msg');
-const redis = require('../../config/redis');
-const config = require('../../config/environment');
-const socket = require('../jsData/jsData.socket');
-const async = require('async');
+import config from '../../config/environment';
 
-function processObject(msg) {
+const { debug } = log('msg');
+import * as socket from '../jsData/jsData.socket';
+
+export interface IMsg {
+  resource: string
+  resourceId?: string
+}
+
+function processObject(msg: IMsg) {
 
   if (!msg.resourceId) {
-    let hash = config.apiV4(msg.resource);
+    const hash = config.apiV4(msg.resource);
     return redis.delAsync(hash)
-      .then(res => {
+      .then((res: any) => {
         debug('delAsync:success', hash, res);
         return res;
       })
-      .catch(res => debug('delAsync:error', hash, res));
+      .catch((res: any) => debug('delAsync:error', hash, res));
   }
 
   return redis.hdelAsync(config.apiV4(msg.resource), msg.resourceId)
-    .then(res => {
+    .then((res: any) => {
       debug('hdelAsync', config.apiV4(msg.resource), msg.resourceId, res);
       return res;
     })
-    .catch(res => debug('delAsync:error', msg.resourceId, res));
+    .catch((res: any) => debug('delAsync:error', msg.resourceId, res));
 }
 
-exports.create = function (req, res, next) {
+export function create(req: any, res: any, next: any) {
 
-  let msg = req.body;
+  const msg = req.body;
 
   _.assign(msg, {
-    resource: req.params.pool + '/' + req.params.resource
+    resource: `${req.params.pool}/${req.params.resource}`
   });
 
   _.assign(msg, req.query);
@@ -48,9 +55,9 @@ exports.create = function (req, res, next) {
     })
     .catch(next);
 
-};
+}
 
-exports.post = function (req, res, next) {
+export function post(req: any, res: any, next: any) {
 
   let data = req.body || req.query || [];
 
@@ -58,10 +65,10 @@ exports.post = function (req, res, next) {
     data = [data];
   }
 
-  async.eachSeries(data, (msg, done) => {
+  eachSeries(data, (msg: IMsg, done) => {
 
     processObject(msg)
-      .then(res => {
+      .then((res: any) => {
         done();
         return res;
       })
@@ -88,19 +95,19 @@ exports.post = function (req, res, next) {
 
   });
 
-};
+}
 
-exports.delete = function (req, res) {
+export function destroy(req: any, res: any) {
 
   let hash = config.apiV4(req.params.pool + '/' + req.params.resource);
 
   redis.delAsync(hash)
-    .then(res => {
+    .then((res: any) => {
       debug('delAsync:success', hash, res);
       return res;
     })
-    .catch(res => debug('delAsync:error', hash, res));
+    .catch((res: any) => debug('delAsync:error', hash, res));
 
   res.sendStatus(200);
 
-};
+}

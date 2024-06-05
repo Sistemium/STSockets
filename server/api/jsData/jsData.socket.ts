@@ -12,7 +12,7 @@ const { globalToken } = config;
 const subscriptions: any[] = [];
 
 
-export function emitEvent(method: string, resource: string, sourceSocketId: string) {
+export function emitEvent(method: string, resource: string, sourceSocketId?: string) {
 
   debug('emitEvent:', method, resource);
 
@@ -26,7 +26,7 @@ export function emitEvent(method: string, resource: string, sourceSocketId: stri
       return emitToSubscribers(method, resource, sourceSocketId)(data);
     }
 
-    let adminSocket = { accessToken };
+    const adminSocket = { accessToken };
 
     authorizedForData(data, adminSocket, method, resource)
       .then(emitToSubscribers(method, resource, sourceSocketId))
@@ -38,7 +38,7 @@ export function emitEvent(method: string, resource: string, sourceSocketId: stri
 
 }
 
-function emitToSubscribers(method: string, resource: string, sourceSocketId: string) {
+function emitToSubscribers(method: string, resource: string, sourceSocketId?: string) {
 
   return (data: any) => {
     _.each(subscriptions, subscription => {
@@ -47,7 +47,7 @@ function emitToSubscribers(method: string, resource: string, sourceSocketId: str
         return;
       }
 
-      let pluginAuthorization = _.get(subscription, `socket.jsDataAuth.${resource}`);
+      const pluginAuthorization = _.get(subscription, `socket.jsDataAuth.${resource}`);
 
       if (pluginAuthorization) {
 
@@ -83,10 +83,10 @@ function emitToSubscribers(method: string, resource: string, sourceSocketId: str
 
 }
 
-function emitToSocket(socket: any, method: string, resource: string, sourceSocketId: string) {
+function emitToSocket(socket: any, method: string, resource: string, sourceSocketId?: string) {
 
   return (data: any) => {
-    let event = 'jsData:' + method;
+    const event = `jsData:${method}`;
 
     if (socket.id !== sourceSocketId) {
       debug('emitEvent:', event, 'id:', socket.id);
@@ -145,7 +145,7 @@ export function subscribe(socket: any) {
 
   return function (filter: Record<string, any>, callback?: any) {
 
-    let subscription = {
+    const subscription = {
       id: uuid.v4(),
       socket: socket,
       filter: filter

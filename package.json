@@ -3,7 +3,7 @@
   "version": "1.4.0",
   "main": "server/app.ts",
   "dependencies": {
-    "async": "^1.5.2",
+    "async": "^3.2.5",
     "bluebird": "^3.3.4",
     "body-parser": "^1.5.0",
     "composable-middleware": "^0.3.0",
