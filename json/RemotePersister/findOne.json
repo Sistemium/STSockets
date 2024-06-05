@@ -1,0 +1,8 @@
+{
+  "STMRemotePersisterController": {
+    "findAllRemote:": {
+      "entityName": "STMCampaign",
+      "predicateFormat": "(id = '53b806bd-e8db-11ed-8136-0050568532e0')"
+    }
+  }
+}
