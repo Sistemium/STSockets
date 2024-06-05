@@ -1,6 +1,0 @@
-{
-  "env": {
-    "DEBUG": "sts:*",
-  },
-  "ignore": ["json", "webstorm", "dist"]
-}
