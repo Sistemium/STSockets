@@ -1,8 +1,7 @@
 import { eachSeries } from 'async';
 import _ from 'lodash';
 import log from 'sistemium-debug';
-// @ts-ignore
-import redis from '../../config/redis';
+import * as redis from '../../config/redis';
 
 import config from '../../config/environment';
 

@@ -5,7 +5,7 @@
 import config from './environment';
 import fs from 'fs';
 import * as jsDataModel from '../api/jsData/jsData.model';
-import * as emitter from '../components/auth/emitter';
+import emitter from '../components/auth/emitter';
 const pluginsDir = config.plugins;
 
 export default function() {
