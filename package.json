@@ -51,8 +51,7 @@
     "tsc": "tsc",
     "serve": "tsc-watch --onSuccess \"zsh -c 'node -r dotenv-flow/config dist/server/index.js'\"",
     "lint": "eslint server",
-    "build": "rm -rf dist && mkdir -p dist && cp -r server dist && cp package.json dist",
-    "start": "nodemon --exec 'node -r esm' -- server"
+    "build": "rm -rf dist && tsc && cp package.json dist"
   },
   "private": true
 }
