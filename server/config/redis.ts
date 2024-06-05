@@ -9,7 +9,7 @@ const { debug } = log('redis');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 
-debug('Redis config:', env.redis);
+debug('Redis config:', JSON.stringify(env.redis));
 
 export const redisClient = redis.createClient(env.redis);
 

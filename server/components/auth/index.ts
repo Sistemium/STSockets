@@ -71,7 +71,7 @@ function getRoles(socket: any, callback: any) {
     if (response.statusCode === 200) {
 
       const roles = JSON.parse(body);
-      console.log('Authorized token:', accessToken, 'account:', roles.account.name);
+      debug('Authorized token:', accessToken, 'account:', roles.account.name);
       callback(roles);
 
     } else {

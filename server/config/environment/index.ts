@@ -83,6 +83,6 @@ const config: Record<string, any> = _.merge(
   all,
   require('./' + process.env.NODE_ENV + '.js').default || {});
 
-console.log('Config:', config);
+// console.log('Config:', config);
 
 export default config

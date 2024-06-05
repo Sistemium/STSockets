@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import log from 'sistemium-debug';
 import { agentName, agentBuild } from '../components/util';
 import { authorizationForSocket } from '../components/auth';
 import * as remoteCommandsSocket from '../api/remoteCommands/remoteCommands.socket';
@@ -6,10 +7,11 @@ import * as sockData from '../components/sockData';
 import * as session from '../api/session/session.controller';
 import * as jsDataSocket from '../api/jsData/jsData.socket';
 
+const { debug, error } = log('socket.id')
 
 function onDisconnect(socket: any) {
 
-  console.info('DISCONNECTED',
+  debug('DISCONNECTED',
     'id:', socket.id,
     'address:', socket.handshake.headers['x-real-ip'] || socket.handshake.address
   );
@@ -19,7 +21,7 @@ function onDisconnect(socket: any) {
 
 function onConnect(socket: any) {
 
-  console.info('CONNECTED',
+  debug('CONNECTED',
     'id:', socket.id,
     'address:', socket.handshake.headers['x-real-ip'] || socket.handshake.address
   );
@@ -37,7 +39,7 @@ function onConnect(socket: any) {
 
     ack((new Date()).toISOString());
 
-    console.info('info:', 'userId:', socket.userId, 'deviceUUID:', socket.deviceUUID, 'data:', JSON.stringify(data));
+    debug('info:', 'userId:', socket.userId, 'deviceUUID:', socket.deviceUUID, 'data:', JSON.stringify(data));
   });
 
 }
@@ -57,7 +59,7 @@ function onAuthorizationCallback(socket: any) {
       socket.userAgent = `${data.bundleIdentifier}/${data.appVersion}`;
     }
 
-    console.info('authorization:', socket.id, agentName(socket), agentBuild(socket), data.accessToken);
+    debug('authorization:', socket.id, agentName(socket), agentBuild(socket), data.accessToken);
 
     if (socket.isAuthorized && socket.accessToken === data.accessToken) {
       return ack({
@@ -89,11 +91,11 @@ function onAuthorizationCallback(socket: any) {
           ack({ isAuthorized: socket.isAuthorized });
 
         })
-        .catch((error: any) => {
-          if (error) {
-            console.error(error);
+        .catch((err: any) => {
+          if (err) {
+            error(err);
           }
-          ack({ error: error });
+          ack({ error: err });
         });
 
     } else {
