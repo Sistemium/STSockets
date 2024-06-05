@@ -4,19 +4,19 @@ import * as jsDataModel from './jsData.model';
 
 const { debug } = log('jsData:socket:router');
 
-export default function(data: any, callback: any) {
+export default function(data: any, callback: any, socketId: string) {
 
-  let success = handleSuccess(callback, data.method, data.resource, data.id || data.params, data.context);
-  let failure = handleError(callback, data.method, data.resource, data.id, data.context);
-  let offset = _.get(data, 'options.offset');
+  const success = handleSuccess(callback, data.method, data.resource, data.id || data.params, data.context, socketId);
+  const failure = handleError(callback, data.method, data.resource, data.id, data.context, socketId);
+  const offset = _.get(data, 'options.offset');
 
-  let params = data.params || {};
+  const params = data.params || {};
 
   if (offset) {
     params['x-offset:'] = offset;
   }
 
-  let pageSize = _.get(data, 'options.pageSize');
+  const pageSize = _.get(data, 'options.pageSize');
 
   if (pageSize) {
     params['x-page-size:'] = pageSize;
@@ -26,7 +26,7 @@ export default function(data: any, callback: any) {
 
     case 'findAll' : {
       jsDataModel.findAll(data.resource, params, data.options)
-        .then(handleFindAllSuccess(callback, data.method, data.resource, data.id || data.params, data.context, pageSize))
+        .then(handleFindAllSuccess(callback, data.method, data.resource, data.id || data.params, data.context, pageSize, socketId))
         .catch(failure)
       ;
       break;
@@ -67,7 +67,7 @@ export default function(data: any, callback: any) {
 }
 
 
-function handleSuccess(callback: any, method: string, resource: string, params: any, context: any) {
+function handleSuccess(callback: any, method: string, resource: string, params: any, context: any, socketId: string) {
   return (reply: any) => {
     const res: Record<string, any> = {
       data: reply || [],
@@ -77,20 +77,20 @@ function handleSuccess(callback: any, method: string, resource: string, params: 
     if (context) {
       res.context = context;
     }
-    debug('handleSuccess', method, resource, params, res.data.id ? 1 : res.data.length, context);
+    debug('handleSuccess', socketId, method, resource, params, res.data.id ? 1 : res.data.length, context);
     callback(res);
     return reply;
   }
 }
 
-function handleFindAllSuccess(callback: any, method: string, resource: string, params: any, context: any, pageSize: number) {
+function handleFindAllSuccess(callback: any, method: string, resource: string, params: any, context: any, pageSize: number, socketId: string) {
   return (reply: any) => {
     const res: Record<string, any> = {
       data: reply.data || [],
       resource: resource,
       method: method, context
     };
-    let offset = reply && reply.xOffset;
+    const offset = reply && reply.xOffset;
     if (offset) {
       res.offset = offset;
     }
@@ -100,13 +100,13 @@ function handleFindAllSuccess(callback: any, method: string, resource: string, p
     if (context) {
       res.context = context;
     }
-    debug('handleFindAllSuccess', method, resource, params, res.data.id ? 1 : res.data.length);
+    debug('handleFindAllSuccess', socketId, method, resource, JSON.stringify(params), res.data.id ? 1 : res.data.length);
     callback(res);
     return reply;
   }
 }
 
-function handleError(callback: any, method: string, resource: string, id: string, context: any) {
+function handleError(callback: any, method: string, resource: string, id: string, context: any, socketId: string) {
   return (errObj: any) => {
     const err = errObj && errObj.status || errObj;
     const res: Record<string, any> = {
@@ -121,7 +121,7 @@ function handleError(callback: any, method: string, resource: string, id: string
     if (context) {
       res.context = context;
     }
-    debug('handleError', res);
+    debug('handleError', socketId, JSON.stringify(res));
     callback(res)
   };
 }

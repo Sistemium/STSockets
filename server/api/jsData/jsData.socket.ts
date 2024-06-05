@@ -18,9 +18,8 @@ export function emitEvent(method: string, resource: string, sourceSocketId?: str
 
   return (data: any) => {
 
-    let pool = _.head(resource.split('/'));
-
-    let accessToken = globalToken(pool);
+    const pool = _.head(resource.split('/'));
+    const accessToken = globalToken(pool);
 
     if (!accessToken) {
       return emitToSubscribers(method, resource, sourceSocketId)(data);
@@ -99,15 +98,15 @@ function emitToSocket(socket: any, method: string, resource: string, sourceSocke
 
 }
 
-function authorizedForData(data: any, socket: any, method: string, resource: string) {
+function authorizedForData(data: Record<string, any>, socket: any, method: string, resource: string) {
 
   return new Promise((resolve, reject) => {
 
-    let id = data.id;
+    const { id } = data;
 
     if (_.isEqual(method, 'update') && id) {
 
-      let options = {
+      const options = {
         headers: {
           authorization: socket.accessToken,
           'x-return-post': true,
@@ -131,7 +130,7 @@ function authorizedForData(data: any, socket: any, method: string, resource: str
 
 function unRegister(socket: any) {
 
-  let toUnsubscribe = _.filter(subscriptions, { socket });
+  const toUnsubscribe = _.filter(subscriptions, { socket });
 
   debug('unRegister:', socket.id, 'subscriptions:', toUnsubscribe.length);
 
@@ -151,7 +150,7 @@ export function subscribe(socket: any) {
       filter: filter
     };
 
-    debug('jsData:subscribe', subscription.id, 'socket:', socket.id, 'filter:', filter);
+    debug('jsData:subscribe', subscription.id, 'socket:', socket.id, 'filter:', JSON.stringify(filter));
 
     subscriptions.push(subscription);
 
@@ -219,7 +218,7 @@ export function register(socket: any) {
 
     //debug('jsData event', data);
 
-    router(data, callback);
+    router(data, callback, socket.id);
 
   });
 

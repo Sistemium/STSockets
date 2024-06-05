@@ -53,7 +53,7 @@ function getEntityData(req: any, socket: any) {
       let jsonBody;
 
       if (err) {
-        console.log(err);
+        console.error(err);
       }
 
       try {

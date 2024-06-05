@@ -22,7 +22,7 @@ export function findAll(resource: string, params: Record<string, any>, options: 
 
   return new Promise(function (resolve, reject) {
 
-    let opts = {
+    const opts = {
       qs: params,
       url: config.apiV4(resource),
       method: 'GET',
@@ -146,7 +146,7 @@ export function find(resource: string, id: string, options: Record<string, any>)
         });
 
         findRequests.set(authorizedHashId, pending);
-        debug('find:makeRequest', opts);
+        debug('find:makeRequest', options.sourceSocketId, opts.method, opts.url);
 
         pending.then(() => {
           findRequests.del(authorizedHashId);
