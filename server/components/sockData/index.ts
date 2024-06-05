@@ -1,21 +1,16 @@
-'use strict';
+import events from 'events';
+import _ from 'lodash';
+// @ts-ignore
+import request from 'request';
+import * as v3 from './st-api-v3';
+import config from '../../config/environment';
 
-const events = require('events');
-const _ = require('lodash');
-const request = require('request');
-
-const apiv3 = require('./st-api-v3');
-const debug = require('debug')('sts:sockData');
-const config = require('../../config/environment');
-
-const sockets = [];
+const sockets: any[] = [];
 const apiV1 = config.APIv1;
 const apiV3 = config.APIv3;
 
 const eventEmitter = new events.EventEmitter();
-
-
-const liveSearchData = {};
+const liveSearchData: Record<string, any> = {};
 
 eventEmitter.on('api:data', function (data) {
   sockets.every(() => {
@@ -23,35 +18,30 @@ eventEmitter.on('api:data', function (data) {
   });
 });
 
-exports.register = sockDataRegister;
 
-
-function sockDataRegister(socket) {
-
+export function register(socket: any) {
   sockets.push(socket);
-
-  register(socket);
-
+  doRegister(socket);
 }
 
 
-function unRegister(socket) {
-  let idx = sockets.indexOf(socket);
+function unRegister(socket: any) {
+  const idx = sockets.indexOf(socket);
   if (idx > -1) {
     sockets.splice(idx, 1);
   }
 }
 
-function postApi(data, socket, callback) {
+function postApi(data: any, socket: any, callback: any) {
 
-  let
-    auth = socket.accessToken,
-    userAgent = socket.userAgent,
-    deviceUUID = socket.deviceUUID,
-    org = socket.org
-  ;
+  const {
+    accessToken: auth,
+    userAgent,
+    deviceUUID,
+    org,
+  } = socket;
 
-  let options = {
+  const options = {
     url: apiV1 + org,
     json: data,
     headers: {
@@ -62,27 +52,27 @@ function postApi(data, socket, callback) {
     }
   };
 
-  return request.post(options, function (err, res, body) {
+  return request.post(options, (err: any, res: any, body: any) => {
     callback(body);
   });
 
 }
 
-function getLiveSearchData(entity, socket) {
+function getLiveSearchData(entity: string, socket: any) {
 
-  let
-    token = socket.accessToken,
-    userAgent = socket.userAgent,
-    deviceUUID = socket.deviceUUID,
-    org = socket.org
-  ;
+  const {
+    accessToken: token,
+    userAgent,
+    deviceUUID,
+    org,
+  } = socket;
 
-  let options = {
-    url: apiV3 + org + '/' + entity,
+  const options = {
+    url: `${apiV3}${org}/${entity}`,
     headers: {
       authorization: token,
-      deviceUUID: deviceUUID,
-      "user-agent": userAgent,
+      deviceUUID,
+      'user-agent': userAgent,
       'if-none-match': '*',
       'page-size': '500',
       'x-real-ip': socket.handshake.headers['x-real-ip'] || socket.handshake.address
@@ -91,13 +81,11 @@ function getLiveSearchData(entity, socket) {
 
   return new Promise((resolve, reject) => {
 
-    let lsd = liveSearchData [entity];
-
-    console.info('getLiveSearchData entity:', entity, 'keys:', Object.keys(liveSearchData));
+    const lsd = liveSearchData [entity];
 
     request.get(options, onResponse);
 
-    function onResponse(err, res, body) {
+    function onResponse(err: any, res: any, body: any) {
 
       let jsonBody;
 
@@ -120,7 +108,7 @@ function getLiveSearchData(entity, socket) {
         lsd.store = [];
         resolve(lsd.store);
       } else if (res.statusCode === 204) {
-        lsd.store = _.sortBy(_.uniq(lsd.store, 'id'), 'name');
+        lsd.store = _.sortBy(_.uniqBy(lsd.store, 'id'), 'name');
         console.info('getLiveSearchData final count:', lsd.store.length);
         console.info('getLiveSearchData final sample:', _.first(lsd.store));
         resolve(lsd.store);
@@ -137,32 +125,32 @@ function getLiveSearchData(entity, socket) {
 
 }
 
+interface ILiveSearch {
+  limit?: number
+  entity: string
+  searchText: string
+  columns: string[]
+}
 
-function liveSearchBy(query, socket, callback) {
+function liveSearchBy(query: ILiveSearch, socket: any, callback: any) {
 
-  let entity = query.entity;
+  const entity = query.entity;
   let entityData = liveSearchData[entity];
-  let limit = query.limit || 50;
+  const limit = query.limit || 50;
 
   if (!entityData) {
-
     entityData = (liveSearchData [entity] = {});
-    liveSearchData [entity].busy = getLiveSearchData(entity, socket);
-
+    liveSearchData[entity].busy = getLiveSearchData(entity, socket);
   }
 
   if (entityData.busy) {
-
-    console.log('liveSearchBy busy:');
-
-    entityData.busy.then(function () {
+    entityData.busy.then(() => {
       liveSearchBy(query, socket, callback);
     });
-
   } else {
 
-    let re = new RegExp(query.searchText, 'ig');
-    let matches = _.filter(entityData.store, function (e) {
+    const re = new RegExp(query.searchText, 'ig');
+    const matches = _.filter(entityData.store, (e) => {
       return e.name && e.name.match(re);
     });
 
@@ -171,7 +159,7 @@ function liveSearchBy(query, socket, callback) {
       'for:', re
     );
     socket.touch();
-    callback(_.map(_.head(matches, limit), function (item) {
+    callback(_.map(_.take(matches, limit), (item) => {
       return _.pick(item, query.columns);
     }));
 
@@ -179,16 +167,15 @@ function liveSearchBy(query, socket, callback) {
 
 }
 
-function register(socket) {
+function doRegister(socket: any) {
 
   socket.on('disconnect', function () {
     unRegister(socket);
   });
 
-  socket.on('data:v1', function (data, clientAck) {
+  socket.on('data:v1', (data: any, clientAck: any) => {
 
-    let ack = (typeof clientAck === 'function') ? clientAck : function () {
-    };
+    const ack = (typeof clientAck === 'function') ? clientAck : _.noop;
 
     socket.touch();
 
@@ -201,11 +188,9 @@ function register(socket) {
 
   });
 
-  socket.on('livesearch', function (data, clientAck) {
+  socket.on('livesearch', (data: any, clientAck: any) => {
 
-    let ack = (typeof clientAck === 'function') ? clientAck : function () {
-    };
-
+    let ack = (typeof clientAck === 'function') ? clientAck : _.noop;
     socket.touch();
 
     console.info('livesearch', 'id:', socket.id, 'query:', JSON.stringify(data, null, 2));
@@ -214,20 +199,16 @@ function register(socket) {
 
   });
 
-  socket.on('get:v3', function (request, clientAck) {
+  socket.on('get:v3', (request: any, clientAck?: any) => {
 
-    let ack = (typeof clientAck === 'function') ? clientAck : function (res) {
-      console.log('empty callback:', res);
-    };
+    let ack = (typeof clientAck === 'function') ? clientAck : _.noop;
 
     socket.touch();
 
     console.info('data:v3', 'id:', socket.id, 'query:', JSON.stringify(request, null, 2));
 
-    apiv3.get(request, socket)
-      .then(function (res) {
-        ack(res);
-      });
+    v3.get(request, socket)
+      .then(ack);
 
   });
 

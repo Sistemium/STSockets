@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { agentName, agentBuild } from '../components/util';
 import { authorizationForSocket } from '../components/auth';
 import * as remoteCommandsSocket from '../api/remoteCommands/remoteCommands.socket';
-import sockData from '../components/sockData';
+import * as sockData from '../components/sockData';
 import * as session from '../api/session/session.controller';
 import * as jsDataSocket from '../api/jsData/jsData.socket';
 

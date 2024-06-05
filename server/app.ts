@@ -23,7 +23,7 @@ require('./config/pluginLoader').default();
 routes(app);
 
 function startServer() {
-  server.listen(config.port, config.ip, function () {
+  server.listen(config.port, config.ip, () => {
     debug('Express server listening on %d, in %s mode', config.port, app.get('env'));
   });
 }

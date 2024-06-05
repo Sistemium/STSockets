@@ -1,21 +1,22 @@
-const request = require('request');
+// @ts-ignore
+import request from 'request';
+import config from '../../config/environment';
 
-const config = require('../../config/environment');
 const rolesUrl = config.pha.roles;
 
-exports.authByToken = function (token, userAgent) {
+export function authByToken(token: string, userAgent: string) {
 
-  let options = {
+  const options = {
     url: rolesUrl,
     headers: {
       authorization: token,
-      "user-agent": userAgent
+      'user-agent': userAgent
     }
   };
 
   return new Promise((resolve, reject) => {
 
-    request.get(options, function (err, res, body) {
+    request.get(options, (err: any, res: any, body: any) => {
 
       let jsonBody;
 
@@ -35,4 +36,4 @@ exports.authByToken = function (token, userAgent) {
 
   });
 
-};
+}
