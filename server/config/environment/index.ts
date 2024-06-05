@@ -41,9 +41,9 @@ const all: Record<string, any> = {
       return false;
     }
 
-    let org = resource.match(/(^[^\/]*)\/(.*)/);
-    let key = 'APIv4';
-    let orgKey = key + (org ? '_' + org[1] : '');
+    const org = resource.match(/(^[^\/]*)\/(.*)/);
+    const key = 'APIv4';
+    const orgKey = `${key}${org ? `_${org[1]}` : ''}`;
 
     if (org && this[orgKey]) {
       return this[orgKey] + org [2];
@@ -64,7 +64,7 @@ const all: Record<string, any> = {
   plugins: process.env.PLUGINS_PATH,
 
   globalToken(pool: string) {
-    let key = `${pool.toUpperCase()}_AUTH`;
+    const key = `${pool.toUpperCase()}_AUTH`;
     return process.env[key] || false;
   },
 
@@ -81,7 +81,7 @@ _.each(process.env, (val: any, key: string) => {
 
 const config: Record<string, any> = _.merge(
   all,
-  require('./' + process.env.NODE_ENV + '.js') || {});
+  require('./' + process.env.NODE_ENV + '.js').default || {});
 
 console.log('Config:', config);
 

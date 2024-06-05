@@ -1,8 +1,6 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-export {agentBuild, agentName};
-
-function agentBuild(req) {
+export function agentBuild(req: any) {
 
   let match = userAgent(req).match(/^[^/]*\/([^ ]+)/);
 
@@ -11,14 +9,12 @@ function agentBuild(req) {
     0;
 }
 
-function agentName(req) {
-
-  let match = userAgent(req).match(/^[^/]*/);
-
-  return match[0] || null;
+export function agentName(req: any) {
+  const [match] = userAgent(req).match(/^[^/]*/);
+  return match || null;
 }
 
-function userAgent(req) {
+function userAgent(req: any) {
   return _.get(req, 'headers.user-agent') ||
     _.get(req, 'userAgent') ||
     '';

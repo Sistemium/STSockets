@@ -1,17 +1,15 @@
-'use strict';
-
-function requiredProcessEnv(name) {
+function requiredProcessEnv(name: string) {
   if(!process.env[name]) {
     throw new Error('You must set the ' + name + ' environment variable');
   }
   return process.env[name];
 }
 
-function processEnv(name) {
+function processEnv(name: string) {
   return process.env[name];
 }
 
-module.exports = {
+export default {
 
   port: requiredProcessEnv('PORT'),
 
@@ -19,4 +17,4 @@ module.exports = {
   APIv1: processEnv('APIv1'),
   APIv3: processEnv('APIv3')
 
-};
+}
