@@ -15,7 +15,7 @@ const socket = socketIO(server, {
   serveClient: (config.env === 'production'),
   path: '/socket.io-client'
 });
-require('./config/socketio')(socket);
+require('./config/socketio').default(socket);
 require('./config/express').default(app);
 require('./config/redis').config(app);
 require('./config/pluginLoader')();

@@ -1,24 +1,13 @@
-/**
- * Socket.io configuration
- */
-
-'use strict';
-
-module.exports = config;
-
 import _ from 'lodash';
-
-// const statusSocket = require('../api/status/status.socket');
-const remoteCommandsSocket = require('../api/remoteCommands/remoteCommands.socket');
-const sockData = require('../components/sockData');
-const session = require('../api/session/session.controller');
-const jsDataSocket = require('../api/jsData/jsData.socket');
-const authorizationForSocket = require('../components/auth').authorizationForSocket;
-
-import {agentName, agentBuild} from '../components/util';
+import { agentName, agentBuild } from '../components/util';
+import { authorizationForSocket } from '../components/auth';
+import * as remoteCommandsSocket from '../api/remoteCommands/remoteCommands.socket';
+import sockData from '../components/sockData';
+import * as session from '../api/session/session.controller';
+import * as jsDataSocket from '../api/jsData/jsData.socket';
 
 
-function onDisconnect(socket) {
+function onDisconnect(socket: any) {
 
   console.info('DISCONNECTED',
     'id:', socket.id,
@@ -28,7 +17,7 @@ function onDisconnect(socket) {
 }
 
 
-function onConnect(socket) {
+function onConnect(socket: any) {
 
   console.info('CONNECTED',
     'id:', socket.id,
@@ -43,9 +32,8 @@ function onConnect(socket) {
 
   socket.on('authorization', onAuthorizationCallback(socket));
 
-  socket.on('info', (data, clientAck) => {
-    let ack = (typeof clientAck === 'function') ? clientAck : function () {
-    };
+  socket.on('info', (data: any, clientAck: any) => {
+    const ack = (typeof clientAck === 'function') ? clientAck : _.noop;
 
     ack((new Date()).toISOString());
 
@@ -55,18 +43,18 @@ function onConnect(socket) {
 }
 
 
-function onAuthorizationCallback(socket) {
+function onAuthorizationCallback(socket: any) {
 
-  return (data, clientAck) => {
+  return (data: any, clientAck: any) => {
 
-    let ack = _.isFunction(clientAck) ? clientAck : _.noop;
+    const ack = _.isFunction(clientAck) ? clientAck : _.noop;
 
     if (!data) {
-      return ack({isAuthorized: false});
+      return ack({ isAuthorized: false });
     }
 
     if (data.bundleIdentifier && data.appVersion) {
-      socket.userAgent = data.bundleIdentifier + '/' + data.appVersion;
+      socket.userAgent = `${data.bundleIdentifier}/${data.appVersion}`;
     }
 
     console.info('authorization:', socket.id, agentName(socket), agentBuild(socket), data.accessToken);
@@ -85,7 +73,7 @@ function onAuthorizationCallback(socket) {
       socket.deviceInfo = socket.deviceUUID ? data : undefined;
 
       authorizationForSocket(socket)
-        .then(isAuthorized => {
+        .then((isAuthorized: any) => {
 
           socket.isAuthorized = !!isAuthorized;
 
@@ -98,14 +86,14 @@ function onAuthorizationCallback(socket) {
 
           }
 
-          ack({isAuthorized: socket.isAuthorized});
+          ack({ isAuthorized: socket.isAuthorized });
 
         })
-        .catch(error => {
+        .catch((error: any) => {
           if (error) {
             console.error(error);
           }
-          ack({error: error});
+          ack({ error: error });
         });
 
     } else {
@@ -117,7 +105,7 @@ function onAuthorizationCallback(socket) {
       delete socket.accessToken;
       delete socket.userId;
 
-      ack({isAuthorized: false});
+      ack({ isAuthorized: false });
 
     }
 
@@ -126,17 +114,17 @@ function onAuthorizationCallback(socket) {
 }
 
 
-function config(socketIO) {
+export default function config(socketIO: any) {
 
-  socketIO.on('connection', function (socket) {
+  socketIO.on('connection', (socket: any) => {
 
     socket.address = socket.handshake.address !== null ?
-      socket.handshake.address.address + ':' + socket.handshake.address.port :
+      `${socket.handshake.address.address}:${socket.handshake.address.port}` :
       process.env.DOMAIN;
 
     socket.connectedAt = new Date();
 
-    socket.on('disconnect', function () {
+    socket.on('disconnect', () => {
       onDisconnect(socket);
     });
 
