@@ -190,7 +190,7 @@ function doRegister(socket: any) {
 
   socket.on('livesearch', (data: any, clientAck: any) => {
 
-    let ack = (typeof clientAck === 'function') ? clientAck : _.noop;
+    const ack = (typeof clientAck === 'function') ? clientAck : _.noop;
     socket.touch();
 
     console.info('livesearch', 'id:', socket.id, 'query:', JSON.stringify(data, null, 2));
@@ -201,7 +201,7 @@ function doRegister(socket: any) {
 
   socket.on('get:v3', (request: any, clientAck?: any) => {
 
-    let ack = (typeof clientAck === 'function') ? clientAck : _.noop;
+    const ack = (typeof clientAck === 'function') ? clientAck : _.noop;
 
     socket.touch();
 

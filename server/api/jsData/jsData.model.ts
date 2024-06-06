@@ -18,7 +18,7 @@ const findRequests = LRU(lruOptions);
 
 export function findAll(resource: string, params: Record<string, any>, options: Record<string, any>) {
 
-  let headers = _.pick(options.headers, config.headers);
+  const headers = _.pick(options.headers, config.headers);
 
   return new Promise(function (resolve, reject) {
 
@@ -194,7 +194,7 @@ export function createOrUpdate(method: string, options: Record<string, any>) {
       qs: options.qs
     };
 
-    let id = options.id || _.get(options, 'attrs.id');
+    const id = options.id || _.get(options, 'attrs.id');
 
     makeRequest(opts, (fromBackend: any) => {
 

@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 export function agentBuild(req: any) {
 
-  let match = userAgent(req).match(/^[^/]*\/([^ ]+)/);
+  const match = userAgent(req).match(/^[^/]*\/([^ ]+)/);
 
   return _.get(req, 'query.agentBuild') ||
     parseInt(match ? match[1] : 0) ||

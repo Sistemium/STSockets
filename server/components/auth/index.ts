@@ -104,7 +104,7 @@ export function authenticator(needRolesStringOrArray: string | string[]) {
       return next();
     }
 
-    let token = req.headers.authorization;
+    const token = req.headers.authorization;
 
     if (!token || tokens[token] === false) {
       log401(req.url, token);

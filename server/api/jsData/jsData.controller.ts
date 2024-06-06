@@ -3,9 +3,9 @@ import * as jsDataModel from './jsData.model';
 
 export function indexBy(req: any, res: any, next: any) {
 
-  let resource = `${req.params.pool}/${req.params.parentResource}/${req.params.parentId}/${req.params.resource}`;
-  let params = req.query;
-  let options = {
+  const resource = `${req.params.pool}/${req.params.parentResource}/${req.params.parentId}/${req.params.resource}`;
+  const params = req.query;
+  const options = {
     headers: req.headers
   };
 
@@ -114,7 +114,7 @@ function handleFindAllResponse(response: any) {
 function handleError(response: any, next: any) {
   return (errObj: any) => {
 
-    let err = errObj && errObj.status || errObj;
+    const err = errObj && errObj.status || errObj;
 
     if (err === 401) {
       return response.status(401).end();

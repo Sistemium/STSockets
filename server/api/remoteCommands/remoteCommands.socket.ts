@@ -67,7 +67,7 @@ export function list() {
 
 
 function unRegister(socket: any) {
-  let idx = sockets.indexOf(socket);
+  const idx = sockets.indexOf(socket);
   if (idx > -1) {
     sockets.splice(idx, 1);
   }

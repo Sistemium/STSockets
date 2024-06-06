@@ -2,11 +2,11 @@ import { eachSeries } from 'async';
 import _ from 'lodash';
 import log from 'sistemium-debug';
 import * as redis from '../../config/redis';
-
+import * as socket from '../jsData/jsData.socket';
 import config from '../../config/environment';
 
+
 const { debug } = log('msg');
-import * as socket from '../jsData/jsData.socket';
 
 export interface IMsg {
   resource: string
@@ -98,7 +98,7 @@ export function post(req: any, res: any, next: any) {
 
 export function destroy(req: any, res: any) {
 
-  let hash = config.apiV4(req.params.pool + '/' + req.params.resource);
+  const hash = config.apiV4(req.params.pool + '/' + req.params.resource);
 
   redis.delAsync(hash)
     .then((res: any) => {
