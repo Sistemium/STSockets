@@ -7,7 +7,7 @@ import * as sockData from '../components/sockData';
 import * as session from '../api/session/session.controller';
 import * as jsDataSocket from '../api/jsData/jsData.socket';
 
-const { debug, error } = log('socket.id')
+const { debug, error } = log('socket.io')
 
 function onDisconnect(socket: any) {
 
