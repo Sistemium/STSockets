@@ -17,7 +17,6 @@ const socket = socketIO(server, {
 });
 require('./config/socketio').default(socket);
 require('./config/express').default(app);
-require('./config/redis').config(app);
 require('./config/pluginLoader').default();
 
 routes(app);

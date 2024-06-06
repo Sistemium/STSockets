@@ -31,7 +31,7 @@ const all: Record<string, any> = {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
     expireAfter: process.env.REDIS_EXPIRE_AFTER || 30,
-    db: process.env.REDIS_DATABASE || 0
+    db: process.env.REDIS_DB || 0
   },
 
   apiV4(resource: string) {
