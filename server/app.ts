@@ -10,12 +10,18 @@ import routes from './routes';
 // Setup server
 const app = express();
 const httpServer = createServer(app);
+const origin = [
+  /(.*\.)?sistemium\.(com|ru)$/,
+  /localhost:\d{4}/,
+  config.domain && new RegExp(config.domain),
+].filter(x => x)
+
 const socket = new Server(httpServer, {
   serveClient: false,
   path: '/socket.io-client',
   allowEIO3: true,
   cors: {
-    origin: [/sistemium\.(com|ru)$/, /localhost:\d{4}/],
+    origin,
     methods: ['GET', 'POST'],
     credentials: true
   },

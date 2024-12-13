@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 const all: Record<string, any> = {
   env: process.env.NODE_ENV,
+  domain: process.env.CORS_DOMAIN,
 
   // Root path of server
   root: path.normalize(__dirname + '/../../..'),
