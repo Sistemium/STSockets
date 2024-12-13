@@ -71,12 +71,18 @@ function getRoles(socket: any, callback: any) {
     if (response.statusCode === 200) {
 
       const roles = JSON.parse(body);
+
+      if (isExpired(roles)) {
+        debug('Expired token:', accessToken, 'account:', roles.account.name);
+        callback(false);
+        return;
+      }
       debug('Authorized token:', accessToken, 'account:', roles.account.name);
       callback(roles);
 
     } else {
 
-      if (response.statusCode === 403) {
+      if ([401, 403].includes(response.statusCode)) {
 
         console.error('Authorization error token:', accessToken, 'status:', response.statusCode);
         callback(false);
@@ -165,4 +171,11 @@ export function authorizedForSocketChange(socket: any, changedSocket: any) {
     || socket.roles.socketAdmin === changedSocket.org
     || socket.org === changedSocket.org;
 
+}
+
+
+function isExpired(auth: Record<string, any>) {
+  const { token } = auth;
+  const { expiresIn } = token || {};
+  return expiresIn < 0;
 }
